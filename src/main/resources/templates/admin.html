@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - Web Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-links a.active {
+            background-color: #3498db;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: white;
+            color: #2c3e50;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            color: #2c3e50;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid;
+        }
+
+        .stat-card.users {
+            border-top-color: #3498db;
+        }
+
+        .stat-card.projects {
+            border-top-color: #2ecc71;
+        }
+
+        .stat-card.documents {
+            border-top-color: #e74c3c;
+        }
+
+        .stat-card.activity {
+            border-top-color: #f39c12;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        /* Admin Sections */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .admin-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-card p {
+            color: #7f8c8d;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+        }
+
+        .btn-success:hover {
+            background-color: #219a52;
+        }
+
+        .btn-warning {
+            background-color: #f39c12;
+        }
+
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .activity-section h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+
+        /* System Info */
+        .system-info {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .system-info h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            color: #7f8c8d;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="logo">🚀 Web Portal</div>
+        <div class="nav-links">
+            <a th:href="@{/projects}">📋 Проекты</a>
+            <a href="#" class="active">⚙️ Админ-панель</a>
+            <div class="user-info">
+                <span>Администратор</span>
+                <div class="user-avatar">
+                    <span>A</span>
+                </div>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="logout-btn">Выйти</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1 class="page-title">⚙️ Административная панель</h1>
+        <div class="btn-group">
+            <button class="btn btn-success">Экспорт данных</button>
+            <button class="btn btn-warning">Резервная копия</button>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card users">
+            <div class="stat-icon">👥</div>
+            <div class="stat-number">24</div>
+            <div class="stat-label">Пользователей</div>
+        </div>
+        <div class="stat-card projects">
+            <div class="stat-icon">📁</div>
+            <div class="stat-number">156</div>
+            <div class="stat-label">Проектов</div>
+        </div>
+        <div class="stat-card documents">
+            <div class="stat-icon">📄</div>
+            <div class="stat-number">892</div>
+            <div class="stat-label">Документов</div>
+        </div>
+        <div class="stat-card activity">
+            <div class="stat-icon">📊</div>
+            <div class="stat-number">1,247</div>
+            <div class="stat-label">Активностей</div>
+        </div>
+    </div>
+
+    <!-- Admin Actions -->
+    <div class="admin-grid">
+        <div class="admin-card">
+            <h3>👥 Управление пользователями</h3>
+            <p>Добавление, редактирование и блокировка пользователей. Назначение ролей и прав доступа.</p>
+            <a href="#" class="btn">Управлять пользователями</a>
+        </div>
+
+        <div class="admin-card">
+            <h3>📊 Статистика системы</h3>
+            <p>Детальная аналитика использования системы, отчеты по активности и производительности.</p>
+            <a href="#" class="btn">Просмотреть статистику</a>
+        </div>
+
+        <div class="admin-card">
+            <h3>⚙️ Настройки системы</h3>
+            <p>Конфигурация параметров системы, настройка интеграций и рабочих процессов.</p>
+            <a href="#" class="btn">Настроить систему</a>
+        </div>
+
+        <div class="admin-card">
+            <h3>🔐 Управление доступом</h3>
+            <p>Настройка ролевой модели, управление разрешениями и политиками безопасности.</p>
+            <a href="#" class="btn">Настроить доступ</a>
+        </div>
+
+        <div class="admin-card">
+            <h3>📁 Шаблоны документов</h3>
+            <p>Управление шаблонами разделов и документов, настройка рабочих процессов.</p>
+            <a href="#" class="btn">Управлять шаблонами</a>
+        </div>
+
+        <div class="admin-card">
+            <h3>🔔 Уведомления</h3>
+            <p>Настройка системы оповещений, email-уведомлений и рабочих процессов.</p>
+            <a href="#" class="btn">Настроить уведомления</a>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity-section">
+        <h3>📈 Последняя активность</h3>
+        <ul class="activity-list">
+            <li class="activity-item">
+                <div class="activity-icon">👤</div>
+                <div class="activity-content">
+                    <div class="activity-text">Новый пользователь зарегистрирован: Иван Петров</div>
+                    <div class="activity-time">5 минут назад</div>
+                </div>
+            </li>
+            <li class="activity-item">
+                <div class="activity-icon">📁</div>
+                <div class="activity-content">
+                    <div class="activity-text">Создан новый проект: "Разработка модуля отчетности"</div>
+                    <div class="activity-time">15 минут назад</div>
+                </div>
+            </li>
+            <li class="activity-item">
+                <div class="activity-icon">✅</div>
+                <div class="activity-content">
+                    <div class="activity-text">Завершена сборка документов для проекта "Обновление API"</div>
+                    <div class="activity-time">1 час назад</div>
+                </div>
+            </li>
+            <li class="activity-item">
+                <div class="activity-icon">🔄</div>
+                <div class="activity-content">
+                    <div class="activity-text">Системное обновление выполнено успешно</div>
+                    <div class="activity-time">2 часа назад</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- System Information -->
+    <div class="system-info">
+        <h3>🖥️ Информация о системе</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Версия системы</div>
+                <div class="info-value">v1.2.3</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Статус</div>
+                <div class="info-value">
+                    <span class="status-badge status-active">Активна</span>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">База данных</div>
+                <div class="info-value">PostgreSQL 13.8</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Последнее обновление</div>
+                <div class="info-value">15.12.2023 14:30</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Сервер</div>
+                <div class="info-value">Production</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Память</div>
+                <div class="info-value">64% использовано</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
