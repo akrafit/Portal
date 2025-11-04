@@ -1,5 +1,6 @@
 package com.portal.controller;
 
+import com.portal.dto.YandexResponse;
 import com.portal.entity.Project;
 import com.portal.service.ProjectService;
 import org.springframework.security.core.Authentication;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/projects")
@@ -39,8 +41,14 @@ public class ProjectController {
 
     @PostMapping
     public String createProject(@ModelAttribute Project project,
-                                Authentication authentication) {
-        projectService.createProject(project, authentication);
+                                Authentication authentication,
+                                RedirectAttributes redirectAttributes) {
+            YandexResponse response = projectService.createProject(project, authentication);
+            if(response.getHref() != null){
+                redirectAttributes.addFlashAttribute("successMessage", "Проект успешно создан!");
+            }else{
+                redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при создании проекта: " + response.getMessage());
+            }
         return "redirect:/projects";
     }
 }

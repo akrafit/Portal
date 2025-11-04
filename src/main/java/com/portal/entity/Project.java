@@ -2,10 +2,6 @@ package com.portal.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +25,8 @@ public class Project {
     private LocalDateTime createdAt;
 
     // Конструкторы
-    public Project() {}
+    public Project() {
+    }
 
     public Project(String name, String description) {
         this.name = name;

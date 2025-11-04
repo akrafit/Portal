@@ -113,8 +113,8 @@
             color: #2c3e50;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+        .btn {
+            background-color: #3498db;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -123,10 +123,13 @@
             font-size: 1rem;
             font-weight: 600;
             transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .btn-primary:hover {
+        .btn:hover {
             transform: translateY(-2px);
+            background-color: #2980b9;
         }
 
         /* Projects Grid */
@@ -144,10 +147,14 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border-left: 4px solid #3498db;
             transition: transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
 
         .project-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
         }
 
         .project-header {
@@ -161,12 +168,17 @@
             font-size: 1.3rem;
             color: #2c3e50;
             margin-bottom: 0.5rem;
+            text-decoration: none;
         }
 
         .project-description {
             color: #7f8c8d;
             line-height: 1.5;
             margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .project-meta {
@@ -175,6 +187,9 @@
             align-items: center;
             font-size: 0.9rem;
             color: #95a5a6;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ecf0f1;
         }
 
         .badge {
@@ -183,6 +198,32 @@
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
+        }
+
+        .badge-active {
+            background-color: #27ae60;
+        }
+
+        .badge-completed {
+            background-color: #95a5a6;
+        }
+
+        .badge-archived {
+            background-color: #e74c3c;
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            color: #7f8c8d;
         }
 
         /* Empty State */
@@ -282,10 +323,57 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: white;
+            border: 2px solid #3498db;
+            color: #3498db;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .action-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
     </style>
 </head>
 <body>
-<!-- Navigation -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        /*[[${successMessage}]]*/
+        const successMessage = /*[[${successMessage}]]*/ null;
+        /*[[${errorMessage}]]*/
+        const errorMessage = /*[[${errorMessage}]]*/ null;
+
+        if (successMessage) {
+            alert('✅ ' + successMessage);
+        }
+
+        if (errorMessage) {
+            alert('❌ ' + errorMessage);
+        }
+    });
+</script>
 <!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
@@ -294,9 +382,9 @@
             <a href="#" class="active">📋 Проекты</a>
             <a th:href="@{/admin}" sec:authorize="hasAuthority('ADMIN')">⚙️ Админ-панель</a>
             <div class="user-info">
-                <span th:text="${userName}">Пользователь</span>
+                <span>Пользователь</span>
                 <div class="user-avatar">
-                    <span th:text="${#strings.toUpperCase(#strings.substring(userName, 0, 1))}">U</span>
+                    <span>U</span>
                 </div>
                 <form th:action="@{/logout}" method="post" style="display: inline;">
                     <button type="submit" class="logout-btn">Выйти</button>
@@ -308,33 +396,75 @@
 
 <!-- Main Content -->
 <div class="container">
+    <!-- Header -->
     <div class="header">
-        <h1 class="page-title">Мои проекты</h1>
-        <button class="btn-primary" onclick="openModal()">+ Создать проект</button>
+        <div>
+            <h1 class="page-title">📋 Мои проекты</h1>
+            <p class="text-muted">Управление проектами и документами</p>
+        </div>
+        <button class="btn" onclick="openModal()">+ Создать проект</button>
     </div>
 
-    <!-- Projects List -->
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="#" class="action-btn">
+            <span>🔍</span>
+            Поиск проектов
+        </a>
+        <a href="#" class="action-btn">
+            <span>📊</span>
+            Статистика
+        </a>
+        <a href="#" class="action-btn">
+            <span>🔄</span>
+            Синхронизировать
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid" style="display: none;" id="statsSection">
+        <!-- Статистика будет здесь -->
+    </div>
+
+    <!-- Projects Grid -->
     <div th:if="${not #lists.isEmpty(projects)}" class="projects-grid">
-        <div class="project-card" th:each="project : ${projects}">
+        <a th:href="@{/projects/{id}/documents(id=${project.id})}"
+           class="project-card"
+           th:each="project : ${projects}">
             <div class="project-header">
                 <h3 class="project-title" th:text="${project.name}">Название проекта</h3>
-                <span class="badge">Активен</span>
+                <span class="badge badge-active">Активен</span>
             </div>
             <p class="project-description" th:text="${project.description} ?: 'Описание отсутствует'">
                 Описание проекта
             </p>
-            <div class="project-meta">
-                <span th:text="${project.createdBy.name}">Автор</span>
-                <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy')}">Дата</span>
+
+            <div class="project-stats">
+                <div class="stat">
+                    <span>📄</span>
+                    <span>5 файлов</span>
+                </div>
+                <div class="stat">
+                    <span>👤</span>
+                    <span th:text="${project.createdBy.name}">Автор</span>
+                </div>
             </div>
-        </div>
+
+            <div class="project-meta">
+                <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy')}">Дата создания</span>
+                <span>→ Открыть</span>
+            </div>
+        </a>
     </div>
 
     <!-- Empty State -->
     <div th:if="${#lists.isEmpty(projects)}" class="empty-state">
-        <h3>📁 Проектов пока нет</h3>
-        <p>Создайте первый проект чтобы начать работу</p>
-        <button class="btn-primary" onclick="openModal()">Создать проект</button>
+        <div class="mb-4">
+            <span style="font-size: 4rem;">📁</span>
+        </div>
+        <h3 class="text-muted">Проектов пока нет</h3>
+        <p class="text-muted mb-4">Создайте первый проект чтобы начать работу</p>
+        <button class="btn" onclick="openModal()">Создать проект</button>
     </div>
 </div>
 
@@ -358,7 +488,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeModal()">Отмена</button>
-                <button type="submit" class="btn-primary">Создать проект</button>
+                <button type="submit" class="btn">Создать проект</button>
             </div>
         </form>
     </div>
@@ -380,6 +510,17 @@
             closeModal();
         }
     }
+
+    // Показываем статистику если есть проекты
+    document.addEventListener('DOMContentLoaded', function() {
+        const projectsGrid = document.querySelector('.projects-grid');
+        const statsSection = document.getElementById('statsSection');
+        const emptyState = document.querySelector('.empty-state');
+
+        if (projectsGrid && projectsGrid.children.length > 0) {
+            statsSection.style.display = 'grid';
+        }
+    });
 </script>
 </body>
 </html>
