@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -425,7 +425,39 @@
     <div class="stats-grid" style="display: none;" id="statsSection">
         <!-- Статистика будет здесь -->
     </div>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Доступные разделы</h5>
+            <p class="mb-0 text-muted" th:if="${project.general}">
+                Шаблон: <span th:text="${project.general.name}"></span>
+            </p>
+        </div>
+        <div class="card-body">
+            <div th:if="${sections.empty}" class="text-center py-4">
+                <p class="text-muted">Нет доступных разделов для этого проекта</p>
+                <p class="text-muted">Возможно, в шаблоне не настроены связи между главами и разделами</p>
+            </div>
 
+            <div th:unless="${sections.empty}" class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название раздела</th>
+                        <th>Количество связанных глав</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="section : ${sections}">
+                        <td th:text="${section.id}"></td>
+                        <td th:text="${section.name}"></td>
+                        <td th:text="${section.chapters.size()}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <!-- Projects Grid -->
     <div th:if="${not #lists.isEmpty(projects)}" class="projects-grid">
         <a th:href="@{/projects/{id}/documents(id=${project.id})}"
@@ -434,6 +466,10 @@
             <div class="project-header">
                 <h3 class="project-title" th:text="${project.name}">Название проекта</h3>
                 <span class="badge badge-active">Активен</span>
+            </div>
+            <div>
+                <span th:if="${project.general}" th:text="${project.general.name}" class="badge bg-primary"></span>
+                <span th:unless="${project.general}" class="text-muted">Не выбран</span>
             </div>
             <p class="project-description" th:text="${project.description} ?: 'Описание отсутствует'">
                 Описание проекта
@@ -475,20 +511,27 @@
             <h3 class="modal-title">Создание проекта</h3>
             <button class="close-btn" onclick="closeModal()">×</button>
         </div>
-        <form th:action="@{/projects}" th:object="${newProject}" method="post">
-            <div class="form-group">
-                <label class="form-label">Название проекта *</label>
-                <input type="text" class="form-control" th:field="*{name}" required
-                       placeholder="Введите название проекта">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Описание</label>
-                <textarea class="form-control" th:field="*{description}" rows="3"
-                          placeholder="Опишите цель проекта..."></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeModal()">Отмена</button>
-                <button type="submit" class="btn">Создать проект</button>
+        <form th:action="@{/projects}" method="post" th:object="${projectForm}">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" th:field="*{name}"
+                           placeholder="Название проекта" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" th:field="*{description}"
+                           placeholder="Описание проекта" required>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control" th:field="*{generalId}">
+                        <option value="">-- Выберите шаблон --</option>
+                        <option th:each="general : ${generals}"
+                                th:value="${general.id}"
+                                th:text="${general.name}"></option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-success w-100">Добавить</button>
+                </div>
             </div>
         </form>
     </div>

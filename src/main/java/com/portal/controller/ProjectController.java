@@ -1,7 +1,9 @@
 package com.portal.controller;
 
+import com.portal.dto.ProjectForm;
 import com.portal.dto.YandexResponse;
 import com.portal.entity.Project;
+import com.portal.service.GeneralService;
 import com.portal.service.ProjectService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -18,9 +20,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final GeneralService generalService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, GeneralService generalService) {
         this.projectService = projectService;
+        this.generalService = generalService;
     }
 
     @GetMapping
@@ -35,20 +39,24 @@ public class ProjectController {
         }
 
         model.addAttribute("projects", projectService.findAll());
-        model.addAttribute("newProject", new Project());
+        model.addAttribute("generals", generalService.getAllGenerals());
+        model.addAttribute("projectForm", new ProjectForm());
         return "projects";
     }
 
     @PostMapping
-    public String createProject(@ModelAttribute Project project,
+    public String createProject(@ModelAttribute ProjectForm projectForm,
                                 Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
-            YandexResponse response = projectService.createProject(project, authentication);
-            if(response.getHref() != null){
-                redirectAttributes.addFlashAttribute("successMessage", "Проект успешно создан!");
-            }else{
-                redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при создании проекта: " + response.getMessage());
-            }
+        Project project = new Project();
+        project.setName(projectForm.getName());
+        project.setDescription(projectForm.getDescription());
+        YandexResponse response = projectService.createProject(project, authentication,projectForm.getGeneralId());
+        if(response.getHref() != null){
+            redirectAttributes.addFlashAttribute("successMessage", "Проект успешно создан!");
+        }else{
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при создании проекта: " + response.getMessage());
+        }
         return "redirect:/projects";
     }
 }

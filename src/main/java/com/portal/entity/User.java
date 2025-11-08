@@ -30,6 +30,9 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "user_id")
+    private String yandexUserId;
+
     // Конструкторы
     public User() {}
 
@@ -88,6 +91,14 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public void setYandexUserId(String yandexUserId) {
+        this.yandexUserId = yandexUserId;
+    }
+
+    public String getYandexUserId() {
+        return yandexUserId;
     }
 }
 

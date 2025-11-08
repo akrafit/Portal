@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -366,6 +366,13 @@
             height: 24px;
             margin-right: 12px;
         }
+        .badge {
+            background-color: #219a52;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 1.6rem;
+        }
     </style>
 </head>
 <body>
@@ -412,7 +419,8 @@
                 </p>
             </div>
             <div class="project-status">
-                <span class="status-badge status-active">Активен</span>
+                <h2 class="badge" th:text="${project.getGeneral().getName()}"></h2>
+<!--                <span class="status-badge status-active">Активен</span>-->
             </div>
         </div>
 
@@ -454,7 +462,24 @@
             <button type="submit" class="btn">Назначить ответственного</button>
         </form>
     </div>
+    <div class="files-section">
+        <div class="section-title">
+            <h5 class="card-title mb-0">Доступные разделы</h5>
+            <p class="mb-0 text-muted" th:if="${project.general}">
+            </p>
+        </div>
+        <div class="card-body">
+            <div th:if="${sections.isEmpty()}" class="text-center py-4">
+                <p class="text-muted">Нет доступных разделов для этого проекта</p>
+                <p class="text-muted">Возможно, в шаблоне не настроены связи между главами и разделами</p>
+            </div>
+            <div th:unless="${sections.isEmpty()}" class="table-responsive">
+                    <div th:each="section : ${sections}">
+                        <span th:text="${section.name}"></span>
 
+            </div>
+        </div>
+    </div>
     <!-- Files List -->
     <div class="files-section">
         <h3 class="section-title">📄 Файлы проекта</h3>

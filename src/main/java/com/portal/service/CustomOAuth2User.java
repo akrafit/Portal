@@ -1,5 +1,6 @@
 package com.portal.service;
 
+import com.portal.entity.User;
 import com.portal.enums.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,10 +14,12 @@ public class CustomOAuth2User implements OAuth2User {
 
     private final OAuth2User oauth2User;
     private final UserRole role;
+    private final User user;
 
-    public CustomOAuth2User(OAuth2User oauth2User, UserRole role) {
+    public CustomOAuth2User(OAuth2User oauth2User, UserRole role, User user) {
         this.oauth2User = oauth2User;
         this.role = role;
+        this.user = user;
     }
 
     @Override
@@ -37,5 +40,8 @@ public class CustomOAuth2User implements OAuth2User {
 
     public UserRole getRole() {
         return role;
+    }
+    public String getYandexUserId() {
+        return user.getYandexId();
     }
 }
