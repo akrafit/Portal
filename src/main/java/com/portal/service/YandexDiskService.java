@@ -30,7 +30,6 @@ public class YandexDiskService {
                     .retrieve()
                     .bodyToMono(YandexDiskResponse.class)
                     .block();
-            System.out.println(response.toString());
 
             return response.getEmbedded().getItems();
         } catch (Exception e) {

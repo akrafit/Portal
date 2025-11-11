@@ -568,11 +568,17 @@
 <!-- Main Content -->
 <div class="container">
     <!-- Header -->
-    <div class="header">
-        <h1 class="page-title" th:text="${project.createdBy.name}">📁 Название проекта</h1>
-        <div class="btn-group">
-            <button class="btn">Экспорт отчета</button>
-            <button class="btn btn-secondary">Настройки проекта</button>
+    <div class="project-header">
+        <div>
+            <h2 class="project-title" th:text="${project.name}">Разработка новой системы документооборота</h2>
+            <p class="project-description" th:text="${project.getDescription()}">
+                Создание современной системы управления документами с интеграцией Яндекс.Диск
+                и автоматизированной сборкой документов из шаблонов.
+            </p>
+        </div>
+        <div class="project-status">
+            <h2 class="badge" th:if="${project.getGeneral() != null}" th:text="${project.getGeneral().getName()}"></h2>
+            <!--                <span class="status-badge status-active">Активен</span>-->
         </div>
     </div>
 
@@ -580,11 +586,7 @@
     <div class="project-info">
         <div class="project-header">
             <div>
-                <h2 class="project-title" th:text="${project.name}">Разработка новой системы документооборота</h2>
-                <p class="project-description" th:text="${project.getDescription()}">
-                    Создание современной системы управления документами с интеграцией Яндекс.Диск
-                    и автоматизированной сборкой документов из шаблонов.
-                </p>
+                <h2 class="project-title" th:text="${section.name}">Разработка новой системы документооборота</h2>
             </div>
             <div class="project-status">
                 <h2 class="badge" th:if="${project.getGeneral() != null}" th:text="${project.getGeneral().getName()}"></h2>
@@ -592,76 +594,9 @@
             </div>
         </div>
 
-        <div class="project-meta">
-            <div class="meta-item">
-                <div class="meta-label">Создан</div>
-                <div class="meta-value" th:text="${T(com.portal.service.DateUtils).format(project.getCreatedAt())}">15.12.2023</div>
-            </div>
-            <div class="meta-item">
-                <div class="meta-label">Автор</div>
-                <div class="meta-value" th:text="${project.createdBy.name}">Иван Иванов</div>
-            </div>
-            <div class="meta-item">
-                <div class="meta-label">Всего файлов</div>
-                <div class="meta-value" th:text="${documentDtoList.size()}">8</div>
-            </div>
-            <div class="meta-item">
-                <div class="meta-label">Последнее обновление</div>
-                <div class="meta-value" th:text="${T(com.portal.service.DateUtils).format(project.getCreatedAt())}">20.12.2023 14:30</div>
-            </div>
-        </div>
     </div>
 
-    <!-- Assign Responsible Form -->
-    <div class="assign-form">
-        <h3 class="section-title">👤 Ответственный за проект</h3>
-        <form>
-            <div class="form-group">
-                <label class="form-label">Выберите ответственного пользователя</label>
-                <select class="form-control">
-                    <option value="">-- Выберите пользователя --</option>
-                    <option value="1">Иван Иванов (Менеджер проекта)</option>
-                    <option value="2" selected>Петр Петров (Разработчик)</option>
-                    <option value="3">Мария Сидорова (Аналитик)</option>
-                    <option value="4">Алексей Козлов (Тестировщик)</option>
-                    <option value="5">Елена Новикова (Дизайнер)</option>
-                </select>
-            </div>
-            <button type="submit" class="btn">Назначить ответственного</button>
-        </form>
-    </div>
-    <div class="files-section">
-        <div class="section-title">
-            <span>📚 Доступные разделы</span>
-            <span class="badge" th:text="${sectionStatuses.size()}"></span>
-        </div>
 
-        <div class="card-body">
-            <div th:if="${sectionStatuses.isEmpty()}" class="text-center py-4">
-                <p class="text-muted">Нет доступных разделов</p>
-            </div>
-
-            <div th:unless="${sectionStatuses.isEmpty()}" class="sections-grid">
-                <div th:each="sectionStatus : ${sectionStatuses}" class="section-card">
-                    <div class="section-header">
-                        <h4 class="section-name" th:text="${sectionStatus.section.name}"></h4>
-                        <span class="section-badge" th:classappend="${sectionStatus.badgeClass}"
-                              th:text="${sectionStatus.statusText}"></span>
-                    </div>
-
-                    <div class="section-actions">
-                        <form th:action="@{/projects/{projectId}/documents/sections/{sectionId}/generate(projectId=${project.id}, sectionId=${sectionStatus.section.id})}"
-                              method="post" class="d-inline">
-                            <button type="submit" class="btn-action btn-generate">
-                                <span class="btn-icon" th:text="${sectionStatus.buttonIcon}"></span>
-                                <span th:text="${sectionStatus.buttonText}"></span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <!-- Files List -->
     <div class="files-section">
         <h3 class="section-title">📄 Файлы проекта</h3>
@@ -670,8 +605,7 @@
             <table class="files-table">
                 <thead>
                 <tr>
-                    <th>Тип</th>
-                    <th>Название файла</th>
+                    <th>Название главы</th>
                     <th>Статус</th>
                     <th>Дата изменения</th>
                     <th>Действия</th>
@@ -681,15 +615,9 @@
                 <!-- Excel файлы -->
                 <tr th:each="documentDto: ${documentDtoList}">
                     <td>
-                       <img th:src="@{/icons/{extension}.svg(extension=${documentDto.dot})}"
-                                                     th:alt="${'Иконка ' + documentDto.dot}"
-                                                     class="document-icon">
-                    </td>
-                    <td>
                         <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"
                            target="_blank" class="file-link" ><p th:text="${documentDto.getName()}"></p>
                         </a>
-<!--                        <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"  class="file-link" ><span th:text="${documentDto.getName()}"></span></a>-->
 
                     </td>
                     <td>

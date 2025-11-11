@@ -377,7 +377,7 @@
 <!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
-        <div class="logo">🚀 Web Portal</div>
+        <div class="logo">Портал управления проектами</div>
         <div class="nav-links">
             <a href="#" class="active">📋 Проекты</a>
             <a th:href="@{/admin}" sec:authorize="hasAuthority('ADMIN')">⚙️ Админ-панель</a>
@@ -424,39 +424,6 @@
     <!-- Stats Cards -->
     <div class="stats-grid" style="display: none;" id="statsSection">
         <!-- Статистика будет здесь -->
-    </div>
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Доступные разделы</h5>
-            <p class="mb-0 text-muted" th:if="${project.general}">
-                Шаблон: <span th:text="${project.general.name}"></span>
-            </p>
-        </div>
-        <div class="card-body">
-            <div th:if="${sections.empty}" class="text-center py-4">
-                <p class="text-muted">Нет доступных разделов для этого проекта</p>
-                <p class="text-muted">Возможно, в шаблоне не настроены связи между главами и разделами</p>
-            </div>
-
-            <div th:unless="${sections.empty}" class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Название раздела</th>
-                        <th>Количество связанных глав</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="section : ${sections}">
-                        <td th:text="${section.id}"></td>
-                        <td th:text="${section.name}"></td>
-                        <td th:text="${section.chapters.size()}"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
     <!-- Projects Grid -->
     <div th:if="${not #lists.isEmpty(projects)}" class="projects-grid">

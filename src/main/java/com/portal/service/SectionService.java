@@ -22,4 +22,7 @@ public class SectionService {
     public Section createSection(Section section) {
         return sectionRepository.save(section);
     }
+    public Section getSectionById(Long Id){
+        return sectionRepository.getReferenceById(Id);
+    }
 }

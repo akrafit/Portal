@@ -1,15 +1,14 @@
 package com.portal.controller;
 
 import com.portal.dto.DocumentDto;
+import com.portal.dto.SectionStatusDto;
 import com.portal.dto.YandexDiskItem;
-import com.portal.dto.YandexDiskResponse;
-import com.portal.entity.Chapter;
 import com.portal.entity.Project;
 import com.portal.entity.Section;
+import com.portal.repo.SectionRepository;
 import com.portal.service.DocumentService;
 import com.portal.service.ProjectService;
 import com.portal.service.YandexDiskService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +24,14 @@ public class ProjectDocumentController {
     private final ProjectService projectService;
     private final DocumentService documentService;
     private final YandexDiskService yandexDiskService;
+    private final SectionRepository sectionRepository;
 
 
-    public ProjectDocumentController(ProjectService projectService, DocumentService documentService, YandexDiskService yandexDiskService) {
+    public ProjectDocumentController(ProjectService projectService, DocumentService documentService, YandexDiskService yandexDiskService, SectionRepository sectionRepository) {
         this.projectService = projectService;
         this.documentService = documentService;
         this.yandexDiskService = yandexDiskService;
+        this.sectionRepository = sectionRepository;
     }
 
     @GetMapping
@@ -44,11 +45,36 @@ public class ProjectDocumentController {
                 documentDtoList.add(new DocumentDto(yandexDiskItem));
             });
         }
+        List<Section> sections = projectService.getAllSections(project);
+        // Просто мапим в DTO
+        List<SectionStatusDto> sectionStatuses = sections.stream()
+                .map(section -> SectionStatusDto.from(section, project))
+                .collect(Collectors.toList());
+
         model.addAttribute("project", project);
+        model.addAttribute("sectionStatuses", sectionStatuses);
         model.addAttribute("documentDtoList", documentDtoList);
-        model.addAttribute("sections", projectService.getAllSections(project));
+        model.addAttribute("sections", sections);
         //model.addAttribute("newDocument", new Document());
         return "project"; // Возвращаем шаблон project.html
+    }
+    @PostMapping("/sections/{sectionId}/generate")
+    public String generateSection(@PathVariable Long projectId,
+                                  @PathVariable Long sectionId) {
+        Project project = projectService.findById(projectId).orElseThrow();
+        Section section = sectionRepository.findById(sectionId).orElseThrow();
+
+        try {
+            // Логика генерации...
+            // generateContent(project, section);
+
+            // Помечаем как сгенерированный
+            projectService.markSectionAsGenerated(project, section);
+
+            return "redirect:/projects/" + projectId + "/documents?success=Section+generated";
+        } catch (Exception e) {
+            return "redirect:/projects/" + projectId + "/documents?error=Generation+failed";
+        }
     }
 //        @PostMapping
 //    public String createDocument(@PathVariable Long projectId,

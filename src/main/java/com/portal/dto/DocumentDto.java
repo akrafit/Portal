@@ -36,7 +36,6 @@ public class DocumentDto {
         this.sizes = yandexDiskItem.getSizes();
         this.dot = getFileExtension(yandexDiskItem.getName());
         this.publicUrl = yandexDiskItem.getPublicUrl();
-        System.out.println(this.publicUrl);
     }
 
 

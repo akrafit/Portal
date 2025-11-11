@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -69,5 +70,24 @@ public class ProjectService {
         }
 
         return new ArrayList<>(sections);
+    }
+    public boolean isSectionGenerated(Project project, Section section) {
+        return project.getGeneratedSections().contains(section);
+    }
+
+    public void markSectionAsGenerated(Project project, Section section) {
+        project.addGeneratedSection(section);
+        projectRepository.save(project);
+    }
+
+    public void markSectionAsNotGenerated(Project project, Section section) {
+        project.removeGeneratedSection(section);
+        projectRepository.save(project);
+    }
+
+    public Set<Long> getGeneratedSectionIds(Project project) {
+        return project.getGeneratedSections().stream()
+                .map(Section::getId)
+                .collect(Collectors.toSet());
     }
 }
