@@ -6,7 +6,6 @@ import com.portal.dto.YandexDiskItem;
 import com.portal.entity.Project;
 import com.portal.entity.Section;
 import com.portal.repo.SectionRepository;
-import com.portal.service.DocumentService;
 import com.portal.service.ProjectService;
 import com.portal.service.YandexDiskService;
 import org.springframework.stereotype.Controller;
@@ -22,14 +21,12 @@ import java.util.stream.Collectors;
 public class ProjectDocumentController {
 
     private final ProjectService projectService;
-    private final DocumentService documentService;
     private final YandexDiskService yandexDiskService;
     private final SectionRepository sectionRepository;
 
 
-    public ProjectDocumentController(ProjectService projectService, DocumentService documentService, YandexDiskService yandexDiskService, SectionRepository sectionRepository) {
+    public ProjectDocumentController(ProjectService projectService, YandexDiskService yandexDiskService, SectionRepository sectionRepository) {
         this.projectService = projectService;
-        this.documentService = documentService;
         this.yandexDiskService = yandexDiskService;
         this.sectionRepository = sectionRepository;
     }

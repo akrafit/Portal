@@ -1,0 +1,7 @@
+version: '3'
+
+volumes:
+  onlyoffice_data:
+  onlyoffice_logs:
+  onlyoffice_lib:
+  onlyoffice_db:

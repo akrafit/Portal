@@ -2,7 +2,11 @@ package com.portal.dto;
 
 import com.portal.entity.Project;
 import com.portal.entity.Section;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class SectionStatusDto {
     private Section section;
     private boolean generated;
@@ -13,23 +17,6 @@ public class SectionStatusDto {
         dto.setSection(section);
         dto.setGenerated(project.getGeneratedSections().contains(section));
         return dto;
-    }
-
-    // геттеры
-    public Section getSection() {
-        return section;
-    }
-
-    public void setSection(Section section) {
-        this.section = section;
-    }
-
-    public boolean isGenerated() {
-        return generated;
-    }
-
-    public void setGenerated(boolean generated) {
-        this.generated = generated;
     }
 
     // вспомогательные методы для HTML

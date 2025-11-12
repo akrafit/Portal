@@ -1,6 +1,5 @@
 package com.portal.service;
 
-import com.portal.controller.GeneralController;
 import com.portal.entity.Chapter;
 import com.portal.entity.General;
 import com.portal.entity.Section;

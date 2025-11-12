@@ -549,7 +549,7 @@
     <div class="nav-container">
         <div class="logo">Портал управления проектами</div>
         <div class="nav-links">
-            <a th:href="@{/projects}" class="btn-secondary">← Назад к проектам</a>
+            <a th:href="@{/projects/{projectId}/documents (projectId=${project.id})}" class="btn-secondary">← Назад</a>
             <a th:href="@{/projects}">📋 Все проекты</a>
             <a th:href="@{/admin}" sec:authorize="hasAuthority('ADMIN')">⚙️ Админ-панель</a>
             <div class="user-info">
@@ -586,11 +586,7 @@
     <div class="project-info">
         <div class="project-header">
             <div>
-                <h2 class="project-title" th:text="${section.name}">Разработка новой системы документооборота</h2>
-            </div>
-            <div class="project-status">
-                <h2 class="badge" th:if="${project.getGeneral() != null}" th:text="${project.getGeneral().getName()}"></h2>
-<!--                <span class="status-badge status-active">Активен</span>-->
+                <h2 class="project-title" th:text="'Раздел: '  + ${section.name}">Разработка новой системы документооборота</h2>
             </div>
         </div>
 
@@ -618,7 +614,6 @@
                         <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"
                            target="_blank" class="file-link" ><p th:text="${documentDto.getName()}"></p>
                         </a>
-
                     </td>
                     <td>
                         <select class="status-select status-ready">
@@ -629,8 +624,8 @@
                     </td>
                     <td th:text="${documentDto.getCreated()}">20.12.2023 14:30</td>
                     <td>
-                        <button class="action-btn btn-edit">✏️</button>
-                        <button class="action-btn btn-delete">🗑️</button>
+                        <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"
+                           target="_blank" class="file-link" ><p>Открыть</p></a>
                     </td>
                 </tr>
 

@@ -12,4 +12,5 @@ public class YandexResponse {
     private String message;
     private String reason;
     private String limit;
+    private boolean success;
 }

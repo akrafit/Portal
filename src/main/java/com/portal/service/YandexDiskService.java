@@ -3,15 +3,14 @@ package com.portal.service;
 import com.portal.dto.*;
 import com.portal.entity.Project;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-@Component
 public class YandexDiskService {
 
     private final WebClient webClient;
@@ -36,17 +35,16 @@ public class YandexDiskService {
             throw new RuntimeException("Ошибка при получении файлов из Яндекс Диска", e);
         }
     }
-
     // Дополнительный метод с фильтрацией только файлов
-//    public List<Resource> getFilesOnlyFromPortalDirectory() {
-//        List<Resource> allItems = getFilesFromPortalDirectory();
-//        return allItems.stream()
-//                .filter(item -> "file".equals(item.getType()))
-//                .collect(Collectors.toList());
-//    }
+    public List<YandexDiskItem> getFilesOnlyFromPortalDirectory(String path) {
+        List<YandexDiskItem> allItems = getFilesFromPortalDirectory(path);
+        return allItems.stream()
+                .filter(item -> "file".equals(item.getType()))
+                .collect(Collectors.toList());
+    }
 
     // Метод для получения информации о конкретном файле
-    public Resource getFileInfo(String fileName) {
+    public YandexDiskItem getFileInfo(String fileName) {
         try {
             return webClient.get()
                     .uri(uriBuilder -> uriBuilder
@@ -54,7 +52,7 @@ public class YandexDiskService {
                             .queryParam("path", "portal/" + fileName)
                             .build())
                     .retrieve()
-                    .bodyToMono(Resource.class)
+                    .bodyToMono(YandexDiskItem.class)
                     .block();
         } catch (Exception e) {
             throw new RuntimeException("Ошибка при получении информации о файле", e);
@@ -99,10 +97,6 @@ public class YandexDiskService {
                             .queryParam("path", folderPath)
                             .build())
                     .retrieve()
-//                    .onStatus(HttpStatusCode::is4xxClientError,
-//                            error -> Mono.error(new RuntimeException("API not found")))
-//                    .onStatus(HttpStatusCode::is5xxServerError,
-//                            error -> Mono.error(new RuntimeException("Server is not responding")))
                     .bodyToMono(YandexResponse.class)
                     .block();
         } catch (Exception e) {

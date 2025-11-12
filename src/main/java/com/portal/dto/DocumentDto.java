@@ -4,7 +4,6 @@ import com.portal.service.DateUtils;
 import lombok.Data;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -12,6 +11,7 @@ public class DocumentDto {
     private String path;
     private String type;
     private String name;
+    private String nameTow;
     private String created;
     private String modified;
     private Long size;
@@ -25,7 +25,7 @@ public class DocumentDto {
     public DocumentDto(YandexDiskItem yandexDiskItem) {
         this.path = yandexDiskItem.getPath();
         this.type = yandexDiskItem.getType();
-        this.name = yandexDiskItem.getName();
+        this.name = removeFileExtension(yandexDiskItem.getName());
         this.created = DateUtils.formatDateTime(yandexDiskItem.getCreated());
         this.modified = yandexDiskItem.getModified();
         this.size = yandexDiskItem.getSize();
@@ -53,5 +53,17 @@ public class DocumentDto {
         }
 
         return "";
+    }
+    public static String removeFileExtension(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return filename;
+        }
+
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex == -1) {
+            return filename; // нет расширения
+        }
+
+        return filename.substring(0, lastDotIndex);
     }
 }

@@ -5,7 +5,6 @@ import com.portal.dto.YandexDiskItem;
 import com.portal.entity.Project;
 import com.portal.entity.Section;
 import com.portal.repo.SectionRepository;
-import com.portal.service.DocumentService;
 import com.portal.service.ProjectService;
 import com.portal.service.SectionService;
 import com.portal.service.YandexDiskService;
@@ -22,19 +21,17 @@ import java.util.List;
 @RequestMapping("/project/{projectId}/{sectionId}")
 public class SectionController {
     private final ProjectService projectService;
-    private final DocumentService documentService;
     private final YandexDiskService yandexDiskService;
     private final SectionService sectionService;
 
-    public SectionController(ProjectService projectService, DocumentService documentService, YandexDiskService yandexDiskService, SectionRepository sectionRepository, SectionService sectionService) {
+    public SectionController(ProjectService projectService,  YandexDiskService yandexDiskService, SectionRepository sectionRepository, SectionService sectionService) {
         this.projectService = projectService;
-        this.documentService = documentService;
         this.yandexDiskService = yandexDiskService;
         this.sectionService = sectionService;
     }
 
     @GetMapping
-    public String getProjectSectionDocuments(@PathVariable Long projectId, Long sectionId, Model model) {
+    public String getProjectSectionDocuments(@PathVariable Long projectId,@PathVariable Long sectionId, Model model) {
         Project project = projectService.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         Section section  = sectionService.getSectionById(sectionId);
