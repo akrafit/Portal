@@ -17,5 +17,5 @@ Spring Boot веб-приложение для управления докуме
 
 1. **Клонируйте репозиторий**
 ```bash
-git clone https://github.com/your-username/document-management-system.git
+git clone https://github.com/akrafit/Portal.git
 cd document-management-system
