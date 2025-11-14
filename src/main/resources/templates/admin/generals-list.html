@@ -30,7 +30,6 @@
                 <tr>
                     <th>ID</th>
                     <th>Название</th>
-                    <th>Путь</th>
                     <th>Действия</th>
                 </tr>
                 </thead>
@@ -38,7 +37,6 @@
                 <tr th:each="general : ${generals}">
                     <td th:text="${general.id}"></td>
                     <td th:text="${general.name}"></td>
-                    <td th:text="${general.src}"></td>
                     <td>
                         <a th:href="@{/admin/generals/{id}(id=${general.id})}"
                            class="btn btn-sm btn-outline-primary">Открыть</a>

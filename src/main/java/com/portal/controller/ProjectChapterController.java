@@ -1,56 +1,48 @@
 package com.portal.controller;
 
-import com.portal.dto.DocumentDto;
 import com.portal.dto.SectionStatusDto;
-import com.portal.dto.YandexDiskItem;
 import com.portal.entity.Project;
 import com.portal.entity.Section;
 import com.portal.repo.SectionRepository;
+import com.portal.service.ChapterService;
 import com.portal.service.ProjectService;
 import com.portal.service.YandexDiskService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/projects/{projectId}/documents")
-public class ProjectDocumentController {
+public class ProjectChapterController {
 
     private final ProjectService projectService;
     private final YandexDiskService yandexDiskService;
     private final SectionRepository sectionRepository;
+    private final ChapterService chapterService;
 
 
-    public ProjectDocumentController(ProjectService projectService, YandexDiskService yandexDiskService, SectionRepository sectionRepository) {
+    public ProjectChapterController(ProjectService projectService, YandexDiskService yandexDiskService, SectionRepository sectionRepository, ChapterService chapterService) {
         this.projectService = projectService;
         this.yandexDiskService = yandexDiskService;
         this.sectionRepository = sectionRepository;
+        this.chapterService = chapterService;
     }
 
     @GetMapping
-    public String getProjectDocuments(@PathVariable Long projectId, Model model) {
+    public String getProjectSections(@PathVariable Long projectId, Model model) {
         Project project = projectService.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        List<DocumentDto> documentDtoList = new ArrayList<>();
-        List<YandexDiskItem> yandexDiskItemList = yandexDiskService.getFilesFromPortalDirectory(project.getName());
-        if(yandexDiskItemList != null) {
-            yandexDiskItemList.forEach(yandexDiskItem -> {
-                documentDtoList.add(new DocumentDto(yandexDiskItem));
-            });
-        }
         List<Section> sections = projectService.getAllSections(project);
-        // Просто мапим в DTO
         List<SectionStatusDto> sectionStatuses = sections.stream()
-                .map(section -> SectionStatusDto.from(section, project))
-                .collect(Collectors.toList());
-
+                .map(section -> SectionStatusDto.from(section, project)).sorted(Comparator.comparing(sectionStatusDto -> sectionStatusDto.getSection().getName())).collect(Collectors.toList());
+        Long size = chapterService.countChaptersToProject(project);
         model.addAttribute("project", project);
         model.addAttribute("sectionStatuses", sectionStatuses);
-        model.addAttribute("documentDtoList", documentDtoList);
+        model.addAttribute("size", size);
         model.addAttribute("sections", sections);
         //model.addAttribute("newDocument", new Document());
         return "project"; // Возвращаем шаблон project.html
@@ -63,11 +55,7 @@ public class ProjectDocumentController {
 
         try {
             // Логика генерации...
-            // generateContent(project, section);
-
-            // Помечаем как сгенерированный
-            projectService.markSectionAsGenerated(project, section);
-
+            Boolean result = projectService.markSectionAsGenerated(project, section);
             return "redirect:/projects/" + projectId + "/documents?success=Section+generated";
         } catch (Exception e) {
             return "redirect:/projects/" + projectId + "/documents?error=Generation+failed";

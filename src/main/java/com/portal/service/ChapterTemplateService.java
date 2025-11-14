@@ -1,9 +1,7 @@
 package com.portal.service;
 
-import com.portal.dto.YandexDiskItem;
 import com.portal.entity.Chapter;
 import com.portal.entity.General;
-import com.portal.entity.Project;
 import com.portal.entity.Section;
 import com.portal.repo.ChapterRepository;
 import com.portal.repo.GeneralRepository;
@@ -15,17 +13,17 @@ import java.util.List;
 
 
 @Service
-public class ChapterService {
+public class ChapterTemplateService {
     private final ChapterRepository chapterRepository;
     private final GeneralRepository generalRepository;
     private final SectionRepository sectionRepository;
-    private final ChapterSyncService chapterSyncService;
+    private final YandexDiskService yandexDiskService;
 
-    public ChapterService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository, ChapterSyncService chapterSyncService) {
+    public ChapterTemplateService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository, YandexDiskService yandexDiskService) {
         this.chapterRepository = chapterRepository;
         this.generalRepository = generalRepository;
         this.sectionRepository = sectionRepository;
-        this.chapterSyncService = chapterSyncService;
+        this.yandexDiskService = yandexDiskService;
     }
 
     public Chapter createChapter(Chapter chapter, Long generalId) {
@@ -54,30 +52,5 @@ public class ChapterService {
 
     public List<Chapter> getChaptersByGeneral(Long generalId) {
         return chapterRepository.findByGeneralId(generalId);
-    }
-    public List<Chapter> getChaptersByGeneralTemplate(General general) {
-        return chapterRepository.findByGeneralAndTemplateTrue(general);
-    }
-    public List<Chapter> getChaptersByGeneralTemplate(General general, Section section) {
-        return chapterRepository.findByGeneralAndTemplateTrueAndContainingSection(general, section);
-    }
-
-    public List<Chapter> getChaptersByProject(Project project, Section section) {
-        return chapterRepository.findChaptersByProjectAndSection(project, section.getId());
-        //return chapterRepository.findChaptersByProjectAndSectionsIs(project,section);
-    }
-
-    public void createChapterForTemplate(YandexDiskItem uploadedFile, Long generalId) {
-        General general = generalRepository.findById(generalId)
-                .orElseThrow(() -> new RuntimeException("General not found with id: " + generalId));
-        Chapter chapter = new Chapter();
-        chapter.setTemplate(true);
-        chapter.setGeneral(general);
-        chapterSyncService.syncChapterFromYandexDiskItem(uploadedFile, chapter);
-    }
-
-
-    public Long countChaptersToProject(Project project) {
-        return chapterRepository.countChapterByProject(project);
     }
 }

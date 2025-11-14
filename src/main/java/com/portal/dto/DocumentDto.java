@@ -1,5 +1,6 @@
 package com.portal.dto;
 
+import com.portal.entity.Chapter;
 import com.portal.service.DateUtils;
 import lombok.Data;
 
@@ -36,6 +37,22 @@ public class DocumentDto {
         this.sizes = yandexDiskItem.getSizes();
         this.dot = getFileExtension(yandexDiskItem.getName());
         this.publicUrl = yandexDiskItem.getPublicUrl();
+    }
+
+    public DocumentDto(Chapter chapter) {
+        this.path = chapter.getPath();
+        //this.type = chapter.getType();
+        this.name = removeFileExtension(chapter.getName());
+        this.created = DateUtils.formatDateTime(chapter.getCreated());
+        this.modified = chapter.getModified();
+        this.size = chapter.getSize();
+        //this.mimeType = chapter.getMimeType();
+        //this.preview = chapter.getPreview();
+        //this.mediaType = chapter.getMediaType();
+        //this.file = chapter.getFile();
+        //this.sizes = chapter.getSizes();
+        this.dot = getFileExtension(chapter.getName());
+        this.publicUrl = chapter.getPublicUrl();
     }
 
 

@@ -39,11 +39,12 @@ public class ProjectService {
         User currentUser = userService.getCurrentUser(authentication);
         project.setCreatedBy(currentUser);
         project.setCreatedAt(LocalDateTime.now());
+        projectRepository.save(project);
         YandexResponse response = yandexDiskService.createFolderForProject(project);
         if (response.getError() != null ){
+            projectRepository.delete(project);
             return response;
         }
-        projectRepository.save(project);
         return response;
     }
     public Optional<Project> findById(Long id) {
@@ -75,9 +76,15 @@ public class ProjectService {
         return project.getGeneratedSections().contains(section);
     }
 
-    public void markSectionAsGenerated(Project project, Section section) {
+    public Boolean markSectionAsGenerated(Project project, Section section) {
         project.addGeneratedSection(section);
-        projectRepository.save(project);
+        List<Chapter> chapterList = chapterService.getChaptersByGeneralTemplate(project.getGeneral(), section);
+        Boolean result = yandexDiskService.copyFromTemplateToProject(chapterList, project,section);
+        if (result){
+            projectRepository.save(project);
+            return true;
+        }
+        return false;
     }
 
     public void markSectionAsNotGenerated(Project project, Section section) {

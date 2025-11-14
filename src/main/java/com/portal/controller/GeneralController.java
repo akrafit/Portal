@@ -1,5 +1,6 @@
 package com.portal.controller;
 
+import com.portal.dto.YandexResponse;
 import com.portal.entity.General;
 import com.portal.entity.Chapter;
 import com.portal.entity.Section;
@@ -52,7 +53,10 @@ public class GeneralController {
     public String getGeneralDetail(@PathVariable Long id, Model model) {
         try {
             General general = generalService.getGeneralById(id);
-            List<Chapter> chapters = chapterService.getChaptersByGeneral(id);
+            if (general == null){
+                return "error";
+            }
+            List<Chapter> chapters = chapterService.getChaptersByGeneralTemplate(general);
             List<Section> sections = sectionService.getAllSections();
 
             // Создаем Map для быстрой проверки связей
@@ -68,7 +72,7 @@ public class GeneralController {
             model.addAttribute("chapters", chapters);
             model.addAttribute("sections", sections);
             model.addAttribute("chapterSectionMap", chapterSectionMap);
-            model.addAttribute("chapterForm", new ChapterForm());
+            //model.addAttribute("chapterForm", new ChapterForm());
 
             return "admin/general-detail";
         } catch (Exception e) {
@@ -81,11 +85,12 @@ public class GeneralController {
     @PostMapping
     public String createGeneral(@ModelAttribute General general) {
         try {
-            logger.info("Creating new general: {}", general.getName());
-            generalService.createGeneral(general);
+            General serviceGeneral = generalService.createGeneral(general);
+            if (serviceGeneral == null){
+               return "redirect:/admin/generals?error=ошибка_создания";
+            }
             return "redirect:/admin/generals";
         } catch (Exception e) {
-            logger.error("Error creating general", e);
             return "redirect:/admin/generals?error=" + e.getMessage();
         }
     }

@@ -2,12 +2,11 @@ package com.portal.controller;
 
 import com.portal.dto.DocumentDto;
 import com.portal.dto.YandexDiskItem;
+import com.portal.entity.Chapter;
 import com.portal.entity.Project;
 import com.portal.entity.Section;
 import com.portal.repo.SectionRepository;
-import com.portal.service.ProjectService;
-import com.portal.service.SectionService;
-import com.portal.service.YandexDiskService;
+import com.portal.service.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,11 +22,15 @@ public class SectionController {
     private final ProjectService projectService;
     private final YandexDiskService yandexDiskService;
     private final SectionService sectionService;
+    private final ChapterService chapterService;
+    private final ChapterSyncService chapterSyncService;
 
-    public SectionController(ProjectService projectService,  YandexDiskService yandexDiskService, SectionRepository sectionRepository, SectionService sectionService) {
+    public SectionController(ProjectService projectService, YandexDiskService yandexDiskService, SectionRepository sectionRepository, SectionService sectionService, ChapterService chapterService, ChapterSyncService chapterSyncService) {
         this.projectService = projectService;
         this.yandexDiskService = yandexDiskService;
         this.sectionService = sectionService;
+        this.chapterService = chapterService;
+        this.chapterSyncService = chapterSyncService;
     }
 
     @GetMapping
@@ -35,15 +38,11 @@ public class SectionController {
         Project project = projectService.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         Section section  = sectionService.getSectionById(sectionId);
-
+        List<Chapter> chapterList = chapterService.getChaptersByProject(project,section);
         List<DocumentDto> documentDtoList = new ArrayList<>();
-        List<YandexDiskItem> yandexDiskItemList = yandexDiskService.getFilesFromPortalDirectory(project.getName());
-        if(yandexDiskItemList != null) {
-            yandexDiskItemList.forEach(yandexDiskItem -> {
-                documentDtoList.add(new DocumentDto(yandexDiskItem));
-            });
+        for (Chapter chapter : chapterList) {
+            documentDtoList.add(new DocumentDto(chapter));
         }
-
         model.addAttribute("project", project);
         model.addAttribute("documentDtoList", documentDtoList);
         model.addAttribute("section", section);
