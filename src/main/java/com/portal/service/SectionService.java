@@ -25,4 +25,13 @@ public class SectionService {
     public Section getSectionById(Long Id){
         return sectionRepository.getReferenceById(Id);
     }
+    // Добавляем метод для обновления раздела
+    public Section updateSection(Section section) {
+        return sectionRepository.save(section);
+    }
+
+    // Добавляем метод для получения всех разделов с шаблонами
+    public List<Section> getAllSectionsWithTemplates() {
+        return sectionRepository.findAll();
+    }
 }

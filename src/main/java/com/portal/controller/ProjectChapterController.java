@@ -52,10 +52,11 @@ public class ProjectChapterController {
                                   @PathVariable Long sectionId) {
         Project project = projectService.findById(projectId).orElseThrow();
         Section section = sectionRepository.findById(sectionId).orElseThrow();
-
         try {
-            // Логика генерации...
             Boolean result = projectService.markSectionAsGenerated(project, section);
+            if(!result){
+                return "redirect:/projects/" + projectId + "/documents?error=Generation+failed";
+            }
             return "redirect:/projects/" + projectId + "/documents?success=Section+generated";
         } catch (Exception e) {
             return "redirect:/projects/" + projectId + "/documents?error=Generation+failed";

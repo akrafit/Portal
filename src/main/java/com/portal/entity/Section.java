@@ -22,6 +22,10 @@ public class Section {
     @ManyToMany(mappedBy = "sections", fetch = FetchType.LAZY)
     private List<Chapter> chapters = new ArrayList<>();
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "template_chapter_id")
+    private Chapter templateChapter;
+
     public Section() {}
 
     public Section(String name) {

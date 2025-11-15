@@ -36,6 +36,11 @@ public class ChapterService {
         return chapterRepository.save(chapter);
     }
 
+    public Chapter createChapterForSectionTemplate(Chapter chapter) {
+        chapter.setTemplate(true);
+        return chapterRepository.save(chapter);
+    }
+
     public void updateChapterSections(Long chapterId, List<Long> sectionIds) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found with id: " + chapterId));
@@ -79,5 +84,12 @@ public class ChapterService {
 
     public Long countChaptersToProject(Project project) {
         return chapterRepository.countChapterByProject(project);
+    }
+    public Chapter updateChapter(Chapter chapter) {
+        return chapterRepository.save(chapter);
+    }
+
+    public void deleteChapter(Long chapterId) {
+        chapterRepository.deleteById(chapterId);
     }
 }
