@@ -3,10 +3,13 @@ package com.portal.controller;
 import com.portal.dto.SectionStatusDto;
 import com.portal.entity.Project;
 import com.portal.entity.Section;
+import com.portal.entity.User;
 import com.portal.repo.SectionRepository;
 import com.portal.service.ChapterService;
 import com.portal.service.ProjectService;
+import com.portal.service.UserService;
 import com.portal.service.YandexDiskService;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,17 +26,23 @@ public class ProjectChapterController {
     private final YandexDiskService yandexDiskService;
     private final SectionRepository sectionRepository;
     private final ChapterService chapterService;
+    private final UserService userService;
 
 
-    public ProjectChapterController(ProjectService projectService, YandexDiskService yandexDiskService, SectionRepository sectionRepository, ChapterService chapterService) {
+    public ProjectChapterController(ProjectService projectService, YandexDiskService yandexDiskService, SectionRepository sectionRepository, ChapterService chapterService, UserService userService) {
         this.projectService = projectService;
         this.yandexDiskService = yandexDiskService;
         this.sectionRepository = sectionRepository;
         this.chapterService = chapterService;
+        this.userService = userService;
     }
 
     @GetMapping
-    public String getProjectSections(@PathVariable Long projectId, Model model) {
+    public String getProjectSections(@PathVariable Long projectId, Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            User user = userService.getCurrentUser(authentication);
+            model.addAttribute("user", user);
+        }
         Project project = projectService.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         List<Section> sections = projectService.getAllSections(project);

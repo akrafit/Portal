@@ -562,9 +562,9 @@
         <div class="nav-links">
             <a th:href="@{/projects}" class="btn-secondary">← Назад к проектам</a>
             <a th:href="@{/projects}">📋 Все проекты</a>
-            <a th:href="@{/admin}" sec:authorize="hasAuthority('ADMIN')">⚙️ Админ-панель</a>
+            <a th:if="${user.role == T(com.portal.enums.UserRole).ADMIN}" th:href="@{/admin}" >⚙️ Админ-панель</a>
             <div class="user-info">
-                <span>Пользователь</span>
+                <span th:text="${user.name}">Пользователь</span>
                 <div class="user-avatar">
                     <span>U</span>
                 </div>

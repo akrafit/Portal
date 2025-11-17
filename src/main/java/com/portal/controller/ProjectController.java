@@ -3,8 +3,10 @@ package com.portal.controller;
 import com.portal.dto.ProjectForm;
 import com.portal.dto.YandexResponse;
 import com.portal.entity.Project;
+import com.portal.entity.User;
 import com.portal.service.GeneralService;
 import com.portal.service.ProjectService;
+import com.portal.service.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -21,23 +23,20 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final GeneralService generalService;
+    private final UserService userService;
 
-    public ProjectController(ProjectService projectService, GeneralService generalService) {
+    public ProjectController(ProjectService projectService, GeneralService generalService, UserService userService) {
         this.projectService = projectService;
         this.generalService = generalService;
+        this.userService = userService;
     }
 
     @GetMapping
     public String projects(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
-            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
-            String userName = oauthUser.getAttribute("real_name");
-            if (userName == null) {
-                userName = oauthUser.getAttribute("login");
-            }
-            model.addAttribute("userName", userName);
+            User user = userService.getCurrentUser(authentication);
+            model.addAttribute("user", user);
         }
-
         model.addAttribute("projects", projectService.findAll());
         model.addAttribute("generals", generalService.getAllGenerals());
         model.addAttribute("projectForm", new ProjectForm());
