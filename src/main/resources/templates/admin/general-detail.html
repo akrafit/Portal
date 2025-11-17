@@ -176,7 +176,7 @@
                         <tbody>
                         <tr th:each="chapter : ${chapters}">
                             <td>
-                                <strong th:text="${chapter.name}"></strong>
+                                <a th:href="@{${chapter.getPublicUrl()}}"><strong th:text="${chapter.name}"></strong></a>
                             </td>
                             <td th:each="section : ${sections}">
                                 <div class="form-check">

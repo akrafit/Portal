@@ -172,20 +172,36 @@ function startUpload(file) {
 
         // Обрабатываем ответ
         currentXHR.addEventListener('load', function() {
-            if (currentXHR.status === 200) {
-                updateProgress(80, 'Обработка на сервере...');
+            try {
+                const result = JSON.parse(currentXHR.responseText);
 
-                try {
-                    const result = JSON.parse(currentXHR.responseText);
+                // Проверяем наличие ошибки в ответе независимо от статуса
+                if (result.error) {
+                    handleError(result.error); // Показываем текст ошибки от сервера
+                    return;
+                }
+
+                // Если статус 200 и нет ошибки - успех
+                if (currentXHR.status === 200) {
                     updateProgress(100, 'Загрузка завершена!');
                     showSuccessNotification();
                     currentXHR = null;
                     cancelBtn.style.display = 'none';
-                } catch (parseError) {
-                    handleError('Ошибка обработки ответа сервера');
+                } else {
+                    // Другие успешные статусы (например, 201 Created)
+                    updateProgress(100, 'Загрузка завершена!');
+                    showSuccessNotification();
+                    currentXHR = null;
+                    cancelBtn.style.display = 'none';
                 }
-            } else {
-                handleError(`Ошибка сервера: ${currentXHR.status}`);
+
+            } catch (parseError) {
+                // Если не удалось распарсить JSON, показываем общую ошибку
+                if (currentXHR.status === 200) {
+                    handleError('Ошибка обработки ответа сервера');
+                } else {
+                    handleError(`Ошибка сервера: ${currentXHR.status} - ${currentXHR.statusText}`);
+                }
             }
         });
 

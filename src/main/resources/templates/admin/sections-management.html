@@ -31,7 +31,20 @@
 <body>
 <div class="container mt-4">
     <h2>Управление разделами</h2>
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin/generals}">Генеральные</a></li>
+            <li class="breadcrumb-item active">Разделы</li>
+        </ol>
+    </nav>
 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Управление разделами</h1>
+        <a th:href="@{/admin/generals}" class="btn btn-outline-secondary">
+            ← Назад к Генеральным
+        </a>
+    </div>
     <!-- Блок для всплывающих сообщений -->
     <div id="alertToast" class="alert alert-toast" style="display: none;">
         <span id="alertMessage"></span>

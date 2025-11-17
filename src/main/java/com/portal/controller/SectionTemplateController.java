@@ -74,7 +74,9 @@ public class SectionTemplateController {
 
             } else {
                 // Создаем новый Chapter как шаблон
-                Chapter templateChapter = createTemplateChapter(uploadedFile);
+                //Chapter templateChapter = createTemplateChapter(uploadedFile);
+                Chapter templateChapter = new Chapter(uploadedFile,null);
+                templateChapter.setTemplate(true);
                 Chapter savedChapter = chapterService.createChapterForSectionTemplate(templateChapter);
 
                 // Связываем раздел с шаблонным Chapter
@@ -115,20 +117,7 @@ public class SectionTemplateController {
         }
     }
 
-    private Chapter createTemplateChapter(YandexDiskItem uploadedFile) {
-        Chapter chapter = new Chapter();
-        chapter.setName(uploadedFile.getName());
-        chapter.setTemplate(true);
-        chapter.setPath(uploadedFile.getPath());
-        chapter.setResourceId(uploadedFile.getResourceId());
-        chapter.setCreated(uploadedFile.getCreated());
-        chapter.setModified(uploadedFile.getModified());
-        chapter.setPublicUrl(uploadedFile.getPublicUrl());
-        chapter.setSrc(uploadedFile.getFile() != null ? uploadedFile.getFile() : uploadedFile.getPreview());
-        chapter.setSize(uploadedFile.getSize());
 
-        return chapter;
-    }
 
     private void updateExistingChapter(Chapter existingChapter, YandexDiskItem newFile) {
         existingChapter.setName(newFile.getName());

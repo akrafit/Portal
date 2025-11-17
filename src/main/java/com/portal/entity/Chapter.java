@@ -19,13 +19,14 @@ public class Chapter {
     @Column(nullable = false)
     private String name;
 
-
     @Column(columnDefinition = "TEXT", length = 10000)
     private String path;
 
     private String created;
     private String modified;
     private Long size;
+
+    private String preview;
 
     @Column(columnDefinition = "TEXT", length = 10000)
     private String resourceId;
@@ -72,6 +73,7 @@ public class Chapter {
         this.project = project;
         this.src = item.getFile() != null ? item.getFile() : item.getPreview();
         this.size = item.getSize();
+        this.preview = item.getPreview();
     }
 
     public void setPublicUrl(String publicUrl) {

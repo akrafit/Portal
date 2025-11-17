@@ -32,23 +32,26 @@ public class YandexDiskUploadController {
 
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(null);
+                        .body(new YandexDiskItem("Отсутствует файл"));
             }
 
             if (generalId == null) {
                 return ResponseEntity.badRequest()
-                        .body(null);
+                        .body(new YandexDiskItem("Проблема с сайтом"));
             }
             // Создаем папку если не существует
             General general = generalService.getGeneralById(generalId);
             if (general == null) {
                 return ResponseEntity.badRequest()
-                        .body(null);
+                        .body(new YandexDiskItem("Не существующий главный шаблон"));
             }
             yandexDiskService.createTemplateFolderIfNotExists();
             yandexDiskService.createFolderForGeneral(general);
             // Загружаем файл
             YandexDiskItem uploadedFile = yandexDiskService.uploadFileToGeneralFolder(file, generalId);
+            if (uploadedFile.getError() != null){
+                return ResponseEntity.badRequest().body(uploadedFile);
+            }
             chapterService.createChapterForTemplate(uploadedFile, generalId);
             return ResponseEntity.ok(uploadedFile);
         } catch (Exception e) {

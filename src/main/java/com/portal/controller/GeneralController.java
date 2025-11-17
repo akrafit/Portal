@@ -1,6 +1,5 @@
 package com.portal.controller;
 
-import com.portal.dto.YandexResponse;
 import com.portal.entity.General;
 import com.portal.entity.Chapter;
 import com.portal.entity.Section;
@@ -8,6 +7,7 @@ import com.portal.service.GeneralService;
 import com.portal.service.ChapterService;
 import com.portal.service.SectionService;
 import com.portal.dto.ChapterForm;
+import com.portal.service.YandexDiskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -24,26 +24,24 @@ public class GeneralController {
     private static final Logger logger = LoggerFactory.getLogger(GeneralController.class);
 
     private final GeneralService generalService;
-
     private final ChapterService chapterService;
     private final SectionService sectionService;
+    private final YandexDiskService yandexDiskService;
 
-    public GeneralController(GeneralService generalService, ChapterService chapterService, SectionService sectionService) {
+    public GeneralController(GeneralService generalService, ChapterService chapterService, SectionService sectionService, YandexDiskService yandexDiskService) {
         this.generalService = generalService;
         this.chapterService = chapterService;
         this.sectionService = sectionService;
+        this.yandexDiskService = yandexDiskService;
     }
 
     @GetMapping
     public String getAllGenerals(Model model) {
         try {
-            logger.info("Fetching all generals");
             List<General> generals = generalService.getAllGenerals();
-            logger.info("Found {} generals", generals.size());
             model.addAttribute("generals", generals);
             return "admin/generals-list";
         } catch (Exception e) {
-            logger.error("Error fetching generals", e);
             model.addAttribute("error", "Ошибка при загрузке списка: " + e.getMessage());
             return "error";
         }
@@ -99,15 +97,12 @@ public class GeneralController {
     public String createChapter(@PathVariable Long generalId,
                                 @ModelAttribute ChapterForm chapterForm) {
         try {
-            logger.info("Creating new chapter for general {}: {}", generalId, chapterForm.getName());
             Chapter chapter = new Chapter();
             chapter.setName(chapterForm.getName());
             chapter.setSrc(chapterForm.getSrc());
-
             chapterService.createChapter(chapter, generalId);
             return "redirect:/admin/generals/" + generalId;
         } catch (Exception e) {
-            logger.error("Error creating chapter", e);
             return "redirect:/admin/generals/" + generalId + "?error=" + e.getMessage();
         }
     }
@@ -117,11 +112,9 @@ public class GeneralController {
                                         @PathVariable Long chapterId,
                                         @RequestParam(required = false) List<Long> sectionIds) {
         try {
-            logger.info("Updating sections for chapter {}: {}", chapterId, sectionIds);
             chapterService.updateChapterSections(chapterId, sectionIds != null ? sectionIds : List.of());
             return "redirect:/admin/generals/" + generalId;
         } catch (Exception e) {
-            logger.error("Error updating chapter sections", e);
             return "redirect:/admin/generals/" + generalId + "?error=" + e.getMessage();
         }
     }
@@ -129,13 +122,16 @@ public class GeneralController {
     @GetMapping("/sections")
     public String getSectionsManagement(Model model) {
         try {
-            logger.info("Fetching all sections");
             List<Section> sections = sectionService.getAllSections();
+//            List<Chapter> chapterList = sections.stream().map(Section::getTemplateChapter).toList();
+//            if(chapterList.size() > 0) {
+//                yandexDiskService.makeChaptersPublicUrl(chapterList);
+//            }
+            sections.sort(Comparator.comparing(Section::getName));
             model.addAttribute("sections", sections);
             model.addAttribute("newSection", new Section());
             return "admin/sections-management";
         } catch (Exception e) {
-            logger.error("Error fetching sections", e);
             model.addAttribute("error", "Ошибка при загрузке разделов: " + e.getMessage());
             return "error";
         }
@@ -144,11 +140,9 @@ public class GeneralController {
     @PostMapping("/sections")
     public String createSection(@ModelAttribute Section section) {
         try {
-            logger.info("Creating new section: {}", section.getName());
             sectionService.createSection(section);
             return "redirect:/admin/generals/sections";
         } catch (Exception e) {
-            logger.error("Error creating section", e);
             return "redirect:/admin/generals/sections?error=" + e.getMessage();
         }
     }
@@ -156,7 +150,6 @@ public class GeneralController {
     public String saveAllChapterSections(@PathVariable Long generalId,
                                          @RequestParam(value = "chapterSections", required = false) List<String> chapterSections) {
         try {
-            logger.info("Saving all chapter sections for general: {}", generalId);
 
             if (chapterSections != null) {
                 // Группируем по chapterId
@@ -177,20 +170,18 @@ public class GeneralController {
                     chapterService.updateChapterSections(entry.getKey(), entry.getValue());
                 }
 
-                logger.info("Updated sections for {} chapters", chapterSectionsMap.size());
             } else {
                 // Если ничего не выбрано, очищаем все связи
                 List<Chapter> chapters = chapterService.getChaptersByGeneral(generalId);
                 for (Chapter chapter : chapters) {
                     chapterService.updateChapterSections(chapter.getId(), new ArrayList<>());
                 }
-                logger.info("Cleared all section associations");
+
             }
 
             return "redirect:/admin/generals/" + generalId + "?success=Sections+updated";
 
         } catch (Exception e) {
-            logger.error("Error saving chapter sections", e);
             return "redirect:/admin/generals/" + generalId + "?error=Error+saving+sections";
         }
     }

@@ -11,6 +11,7 @@ import com.portal.repo.SectionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -20,12 +21,14 @@ public class ChapterService {
     private final GeneralRepository generalRepository;
     private final SectionRepository sectionRepository;
     private final ChapterSyncService chapterSyncService;
+    private final YandexDiskService yandexDiskService;
 
-    public ChapterService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository, ChapterSyncService chapterSyncService) {
+    public ChapterService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository, ChapterSyncService chapterSyncService, YandexDiskService yandexDiskService) {
         this.chapterRepository = chapterRepository;
         this.generalRepository = generalRepository;
         this.sectionRepository = sectionRepository;
         this.chapterSyncService = chapterSyncService;
+        this.yandexDiskService = yandexDiskService;
     }
 
     public Chapter createChapter(Chapter chapter, Long generalId) {
@@ -37,7 +40,7 @@ public class ChapterService {
     }
 
     public Chapter createChapterForSectionTemplate(Chapter chapter) {
-        chapter.setTemplate(true);
+        yandexDiskService.makeChaptersPublicUrl(new ArrayList<>(Collections.singleton(chapter)));
         return chapterRepository.save(chapter);
     }
 
@@ -61,8 +64,17 @@ public class ChapterService {
         return chapterRepository.findByGeneralId(generalId);
     }
     public List<Chapter> getChaptersByGeneralTemplate(General general) {
+        makeChaptersPublicUrl(general);
         return chapterRepository.findByGeneralAndTemplateTrue(general);
     }
+
+    private void makeChaptersPublicUrl(General general) {
+        List<Chapter> chapterList = chapterRepository.findByGeneralId(general.getId());
+        if (chapterList.size() > 0) {
+            yandexDiskService.makeChaptersPublicUrl(chapterList);
+        }
+    }
+
     public List<Chapter> getChaptersByGeneralTemplate(General general, Section section) {
         return chapterRepository.findByGeneralAndTemplateTrueAndContainingSection(general, section);
     }

@@ -161,12 +161,14 @@ public class YandexDiskService {
     public YandexDiskItem uploadFileToFolder(MultipartFile file, String folderPath) {
         try {
             String fullPath = folderPath + "/" + file.getOriginalFilename();
-
+            if (isFolderExists(fullPath)){
+                return new YandexDiskItem("Файл: " + file.getOriginalFilename() + " уже существует");
+            }
             // Получаем URL для загрузки
             String uploadUrl = getUploadUrl(fullPath, true);
 
             if (uploadUrl == null) {
-                throw new RuntimeException("Не удалось получить URL для загрузки");
+                return new YandexDiskItem("Не удалось получить URL для загрузки");
             }
 
             // Создаем временный файл
@@ -188,9 +190,9 @@ public class YandexDiskService {
             Files.deleteIfExists(tempFile);
             return getFileInfo(fullPath);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при обработке файла", e);
+            return new YandexDiskItem("Ошибка при обработке файла" + e.getMessage());
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка при загрузке файла на Яндекс.Диск", e);
+            return new YandexDiskItem("Ошибка при загрузке файла на Яндекс.Диск" + e.getMessage());
         }
     }
 
@@ -410,6 +412,30 @@ public class YandexDiskService {
         }
 
         return path;
+    }
+
+    public void makeChaptersPublicUrl(List<Chapter> chapterList) {
+
+        for (Chapter chapter : chapterList) {
+            if (chapter.getPublicUrl() == null) {
+                try {
+                    YandexDiskUploadResponse yandexDiskUploadResponse = webClient.put()
+                            .uri(uriBuilder -> uriBuilder
+                                    .path("/resources/publish")
+                                    .queryParam("path", chapter.getPath())
+                                    .build())
+                            .retrieve()
+                            .bodyToMono(YandexDiskUploadResponse.class)
+                            .block();
+                    assert yandexDiskUploadResponse != null;
+                    YandexDiskItem yandexDiskItem = getFileMetaInfo(yandexDiskUploadResponse.getUploadUrl());
+                    chapter.setPublicUrl(yandexDiskItem.getPublicUrl());
+                } catch (Exception e) {
+                    throw new RuntimeException("Ошибка при открытии доступа к файлу", e);
+                }
+            }
+        }
+        chapterRepository.saveAll(chapterList);
     }
 
     // Метод для отката созданных файлов в случае ошибки
