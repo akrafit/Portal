@@ -3,556 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link th:href="@{/css/project.css}" rel="stylesheet" type="text/css">
     <title>Проект - Web Portal</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-        }
-        /* Navigation */
-        .navbar {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #3498db;
-        }
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        .nav-links a:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-
-        .nav-links a.active {
-            background-color: #3498db;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #3498db;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .logout-btn {
-            background: none;
-            border: 1px solid white;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .logout-btn:hover {
-            background-color: white;
-            color: #2c3e50;
-        }
-
-        /* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .page-title {
-            font-size: 2rem;
-            color: #2c3e50;
-        }
-
-        .btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 0.9rem;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-secondary {
-            background-color: #95a5a6;
-        }
-
-        .btn-secondary:hover {
-            background-color: #7f8c8d;
-        }
-
-        /* Project Info */
-        .project-info {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-
-        .project-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1.5rem;
-        }
-
-        .project-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .project-description {
-            color: #7f8c8d;
-            line-height: 1.5;
-        }
-
-        .project-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .meta-item {
-            padding: 1rem;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .meta-label {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .meta-value {
-            color: #7f8c8d;
-        }
-
-        /* Assign Form */
-        .assign-form {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        /* Files List */
-        .files-section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .files-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .files-table th,
-        .files-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        .files-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .file-icon {
-            font-size: 1.5rem;
-            margin-right: 0.5rem;
-            vertical-align: middle;
-        }
-
-        .file-link {
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .file-link:hover {
-            text-decoration: underline;
-        }
-
-        .status-select {
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: white;
-            cursor: pointer;
-        }
-
-        .status-in-work {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .status-ready {
-            background-color: #d1edff;
-            color: #004085;
-        }
-
-        .status-cancelled {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-btn {
-            background: none;
-            border: 1px solid #ddd;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 0.5rem;
-            transition: all 0.3s;
-        }
-
-        .action-btn:hover {
-            background-color: #f8f9fa;
-        }
-
-        .btn-edit {
-            color: #3498db;
-            border-color: #3498db;
-        }
-
-        .btn-delete {
-            color: #e74c3c;
-            border-color: #e74c3c;
-        }
-
-        /* Add File Form */
-        .add-file-form {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 1rem;
-            align-items: end;
-        }
-
-        .btn-primary {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .btn-primary:hover {
-            background-color: #219a52;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: #7f8c8d;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-        }
-        .document-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 12px;
-        }
-        .badge {
-            background-color: #219a52;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 1.6rem;
-        }
-        /* Sections Grid */
-        .sections-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .section-card {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .section-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: #3498db;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
-        .section-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin: 0;
-            flex: 1;
-            margin-right: 1rem;
-        }
-
-        .section-badge {
-            background: #3498db;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .section-description {
-            margin-bottom: 1.5rem;
-        }
-
-        .section-description p {
-            margin: 0;
-            line-height: 1.5;
-            font-size: 0.9rem;
-        }
-
-        /* Section Actions */
-        .section-actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .btn-process {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-process:hover {
-            background: #c0392b;
-            transform: translateY(-1px);
-        }
-
-        .btn-generate {
-            background: #27ae60;
-            color: white;
-        }
-
-        .btn-generate:hover {
-            background: #219a52;
-            transform: translateY(-1px);
-        }
-
-        .btn-info {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background: #7f8c8d;
-            transform: translateY(-1px);
-        }
-
-        .btn-icon {
-            font-size: 1rem;
-        }
-
-        /* Messages */
-        .alert-success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sections-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .section-actions {
-                flex-direction: column;
-            }
-
-            .btn-action {
-                justify-content: center;
-            }
-        }
-        .status-generated {
-            background: #27ae60 !important;
-        }
-
-        .status-not-generated {
-            background: #e74c3c !important;
-        }
-
-        .btn-generate {
-            background: #3498db;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn-generate:hover {
-            background: #2980b9;
-        }
-        .btn-view {
-            background-color: #6c757d;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
-        .btn-view:hover {
-            background-color: #5a6268;
-            color: white;
-            text-decoration: none;
-        }
-    </style>
 </head>
 <body>
 <!-- Navigation -->
@@ -562,7 +14,7 @@
         <div class="nav-links">
             <a th:href="@{/projects}" class="btn-secondary">← Назад к проектам</a>
             <a th:href="@{/projects}">📋 Все проекты</a>
-            <a th:if="${user.role == T(com.portal.enums.UserRole).ADMIN}" th:href="@{/admin}" >⚙️ Админ-панель</a>
+            <a sec:authorize="hasAnyRole('ADMIN')" th:href="@{/admin}" >⚙ Админ-панель</a>
             <div class="user-info">
                 <span th:text="${user.name}">Пользователь</span>
                 <div class="user-avatar">
@@ -578,6 +30,14 @@
 
 <!-- Main Content -->
 <div class="container">
+    <!-- Flash сообщения -->
+    <div th:if="${success}" class="alert-success" id="flashSuccess">
+        <span th:text="${success}">Успешное сообщение</span>
+    </div>
+    <div th:if="${error}" class="alert-error" id="flashError">
+        <span th:text="${error}">Сообщение об ошибке</span>
+    </div>
+
     <!-- Header -->
     <div class="header">
         <h1 class="page-title" th:text="${project.createdBy.name}">📁 Название проекта</h1>
@@ -599,7 +59,6 @@
             </div>
             <div class="project-status">
                 <h2 class="badge" th:if="${project.getGeneral() != null}" th:text="${project.getGeneral().getName()}"></h2>
-<!--                <span class="status-badge status-active">Активен</span>-->
             </div>
         </div>
 
@@ -623,24 +82,7 @@
         </div>
     </div>
 
-    <!-- Assign Responsible Form -->
-    <div class="assign-form">
-        <h3 class="section-title">👤 Ответственный за проект</h3>
-        <form>
-            <div class="form-group">
-                <label class="form-label">Выберите ответственного пользователя</label>
-                <select class="form-control">
-                    <option value="">-- Выберите пользователя --</option>
-                    <option value="1">Иван Иванов (Менеджер проекта)</option>
-                    <option value="2" selected>Петр Петров (Разработчик)</option>
-                    <option value="3">Мария Сидорова (Аналитик)</option>
-                    <option value="4">Алексей Козлов (Тестировщик)</option>
-                    <option value="5">Елена Новикова (Дизайнер)</option>
-                </select>
-            </div>
-            <button type="submit" class="btn">Назначить ответственного</button>
-        </form>
-    </div>
+    <!-- Files List -->
     <div class="files-section">
         <div class="section-title">
             <span>📚 Доступные разделы</span>
@@ -660,6 +102,20 @@
                               th:text="${sectionStatus.statusText}"></span>
                     </div>
 
+                    <!-- Блок с назначенными пользователями -->
+                    <div class="assigned-users" th:if="${not sectionStatus.assignedUsers.isEmpty()}">
+                        <div class="assignment-header">
+                            <div class="meta-label">Ответственные:</div>
+                            <span class="assignment-count" th:text="${sectionStatus.assignedUsers.size()}"></span>
+                        </div>
+                        <div th:each="user : ${sectionStatus.assignedUsers}" class="assigned-user">
+                            <span th:text="${user.name}"></span>
+                        </div>
+                    </div>
+                    <div th:if="${sectionStatus.assignedUsers.isEmpty()}" class="assigned-users">
+                        <div class="no-assignments">Ответственные не назначены</div>
+                    </div>
+
                     <div class="section-actions">
                         <!-- Кнопка для перехода по ссылке -->
                         <a th:href="@{/project/{projectId}/{sectionId}(projectId=${project.id}, sectionId=${sectionStatus.section.id})}"
@@ -668,119 +124,48 @@
                             Просмотреть
                         </a>
 
-                        <form th:action="@{/projects/{projectId}/documents/sections/{sectionId}/generate(projectId=${project.id}, sectionId=${sectionStatus.section.id})}"
+                        <form th:if="${isProjectCreator}" th:action="@{/projects/{projectId}/documents/sections/{sectionId}/generate(projectId=${project.id}, sectionId=${sectionStatus.section.id})}"
                               method="post" class="d-inline">
                             <button type="submit" class="btn-action btn-generate">
                                 <span class="btn-icon" th:text="${sectionStatus.buttonIcon}"></span>
                                 <span th:text="${sectionStatus.buttonText}"></span>
                             </button>
                         </form>
+
+                        <!-- Форма назначения ответственного (только для создателя проекта с ролью EMPLOYEE) -->
+                        <div th:if="${isProjectCreator}" class="assignment-form">
+                            <form th:action="@{/projects/{projectId}/documents/sections/{sectionId}/assign(projectId=${project.id}, sectionId=${sectionStatus.section.id})}"
+                                  method="post" class="d-inline">
+                                <select name="userId" class="form-control-sm">
+                                    <option value="">-- Выберите ответственного --</option>
+                                    <option th:each="contractor : ${availableContractors}"
+                                            th:value="${contractor.id}"
+                                            th:text="${contractor.name} + ' (' + ${contractor.email} + ')'">
+                                    </option>
+                                </select>
+                                <button type="submit" class="btn-action btn-assign">
+                                    <span class="btn-icon">👤</span>
+                                    Назначить
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Files List -->
-<!--    <div class="files-section">-->
-<!--        <h3 class="section-title">📄 Файлы проекта</h3>-->
-
-<!--        <div th:if="${documentDtoList.size() > 0}">-->
-<!--            <table class="files-table">-->
-<!--                <thead>-->
-<!--                <tr>-->
-<!--                    <th>Тип</th>-->
-<!--                    <th>Название файла</th>-->
-<!--                    <th>Статус</th>-->
-<!--                    <th>Дата изменения</th>-->
-<!--                    <th>Действия</th>-->
-<!--                </tr>-->
-<!--                </thead>-->
-<!--                <tbody>-->
-<!--                &lt;!&ndash; Excel файлы &ndash;&gt;-->
-<!--                <tr th:each="documentDto: ${documentDtoList}">-->
-<!--                    <td>-->
-<!--                       <img th:src="@{/icons/{extension}.svg(extension=${documentDto.dot})}"-->
-<!--                                                     th:alt="${'Иконка ' + documentDto.dot}"-->
-<!--                                                     class="document-icon">-->
-<!--                    </td>-->
-<!--                    <td>-->
-<!--                        <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"-->
-<!--                           target="_blank" class="file-link" ><p th:text="${documentDto.getName()}"></p>-->
-<!--                        </a>-->
-<!--&lt;!&ndash;                        <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"  class="file-link" ><span th:text="${documentDto.getName()}"></span></a>&ndash;&gt;-->
-
-<!--                    </td>-->
-<!--                    <td>-->
-<!--                        <select class="status-select status-ready">-->
-<!--                            <option value="in_work">В работе</option>-->
-<!--                            <option value="ready" selected>Готов</option>-->
-<!--                            <option value="cancelled">Отменен</option>-->
-<!--                        </select>-->
-<!--                    </td>-->
-<!--                    <td th:text="${documentDto.getCreated()}">20.12.2023 14:30</td>-->
-<!--                    <td>-->
-<!--                        <button class="action-btn btn-edit">✏️</button>-->
-<!--                        <button class="action-btn btn-delete">🗑️</button>-->
-<!--                    </td>-->
-<!--                </tr>-->
-
-<!--                </tbody>-->
-<!--            </table>-->
-<!--        </div>-->
-
-<!--        <div class="empty-state" th:if="${documentDtoList.size() == 0}">-->
-<!--            <h3>📁 Файлов пока нет</h3>-->
-<!--            <p>Добавьте первый файл в проект</p>-->
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    &lt;!&ndash; Add File Form &ndash;&gt;-->
-<!--    <div class="add-file-form">-->
-<!--        <h3 class="section-title">➕ Добавить новый файл</h3>-->
-<!--        <form>-->
-<!--            <div class="form-row">-->
-<!--                <div class="form-group">-->
-<!--                    <label class="form-label">Название файла</label>-->
-<!--                    <input type="text" class="form-control" placeholder="Введите название файла">-->
-<!--                </div>-->
-
-<!--                <div class="form-group">-->
-<!--                    <label class="form-label">Тип файла</label>-->
-<!--                    <select class="form-control">-->
-<!--                        <option value="">&#45;&#45; Выберите тип &#45;&#45;</option>-->
-<!--                        <option value="xlsx">📊 Excel (XLSX)</option>-->
-<!--                        <option value="xlsm">📈 Excel с макросами (XLSM)</option>-->
-<!--                        <option value="doc">📝 Word (DOC)</option>-->
-<!--                        <option value="docx">📄 Word (DOCX)</option>-->
-<!--                        <option value="pdf">📕 PDF</option>-->
-<!--                    </select>-->
-<!--                </div>-->
-
-<!--                <div class="form-group">-->
-<!--                    <label class="form-label">Ссылка на Яндекс.Документ</label>-->
-<!--                    <input type="url" class="form-control" placeholder="https://disk.yandex.ru/...">-->
-<!--                </div>-->
-
-<!--                <div class="form-group">-->
-<!--                    <button type="submit" class="btn-primary">Добавить файл</button>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </form>-->
-<!--    </div>-->
 </div>
-</body>
+
 <script>
-    // Показываем сообщения об успехе/ошибке
+    // Показываем сообщения из flash атрибутов
     document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if (urlParams.has('success')) {
-            showMessage(urlParams.get('success'), 'success');
-        }
-
-        if (urlParams.has('error')) {
-            showMessage(urlParams.get('error'), 'error');
-        }
+        // Автоматически скрываем flash сообщения через 5 секунд
+        const flashMessages = document.querySelectorAll('.alert-success, .alert-error');
+        flashMessages.forEach(message => {
+            setTimeout(() => {
+                message.remove();
+            }, 5000);
+        });
 
         // Добавляем подтверждение для действий
         document.querySelectorAll('form').forEach(form => {
@@ -791,24 +176,29 @@
                 }
             });
         });
+
+        // Добавляем обработчик для форм назначения
+        document.querySelectorAll('.assignment-form form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const select = this.querySelector('select[name="userId"]');
+                if (!select.value) {
+                    e.preventDefault();
+                    alert('Пожалуйста, выберите ответственного пользователя');
+                    return false;
+                }
+
+                const userName = select.options[select.selectedIndex].text;
+                if (!confirm(`Назначить пользователя "${userName}" ответственным за этот раздел?`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
     });
-
-    function showMessage(message, type) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = type === 'success' ? 'alert-success' : 'alert-error';
-        messageDiv.textContent = decodeURIComponent(message.replace(/\+/g, ' '));
-
-        const container = document.querySelector('.container');
-        container.insertBefore(messageDiv, container.firstChild);
-
-        // Автоматически скрываем через 5 секунд
-        setTimeout(() => {
-            messageDiv.remove();
-        }, 5000);
-    }
 
     function showSectionInfo(sectionId) {
         alert(`Информация о разделе ID: ${sectionId}\nЗдесь можно показать детальную информацию о разделе.`);
     }
 </script>
+</body>
 </html>

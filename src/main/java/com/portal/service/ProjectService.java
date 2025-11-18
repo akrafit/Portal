@@ -4,6 +4,7 @@ import com.portal.dto.YandexResponse;
 import com.portal.entity.*;
 import com.portal.repo.GeneralRepository;
 import com.portal.repo.ProjectRepository;
+import org.springframework.security.access.method.P;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +22,15 @@ public class ProjectService {
     private final YandexDiskService yandexDiskService;
     private final GeneralRepository generalRepository;
     private final ChapterService chapterService;
+    private final SectionAssignmentService sectionAssignmentService;
 
-    public ProjectService(ProjectRepository projectRepository, UserService userService, YandexDiskService yandexDiskService, GeneralRepository generalRepository, ChapterService chapterService) {
+    public ProjectService(ProjectRepository projectRepository, UserService userService, YandexDiskService yandexDiskService, GeneralRepository generalRepository, ChapterService chapterService, SectionAssignmentService sectionAssignmentService) {
         this.projectRepository = projectRepository;
         this.userService = userService;
         this.yandexDiskService = yandexDiskService;
         this.generalRepository = generalRepository;
         this.chapterService = chapterService;
+        this.sectionAssignmentService = sectionAssignmentService;
     }
 
     public YandexResponse createProject(Project project, Authentication authentication, Long generalId) {
@@ -96,5 +99,10 @@ public class ProjectService {
         return project.getGeneratedSections().stream()
                 .map(Section::getId)
                 .collect(Collectors.toSet());
+    }
+
+    public List<Project> findWhereUserContractor(User user) {
+        List<SectionAssignment> sectionAssignments = sectionAssignmentService.getAssignmentsForUser(user);
+        return sectionAssignments.stream().map(SectionAssignment::getProject).toList();
     }
 }

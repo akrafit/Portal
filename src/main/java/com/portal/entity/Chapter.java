@@ -19,22 +19,25 @@ public class Chapter {
     @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "TEXT", length = 10000)
+    @Column(columnDefinition = "TEXT")
     private String path;
 
+    @Column(columnDefinition = "TEXT")
     private String created;
+    @Column(columnDefinition = "TEXT")
     private String modified;
     private Long size;
 
+    @Column(columnDefinition = "TEXT")
     private String preview;
 
-    @Column(columnDefinition = "TEXT", length = 10000)
+    @Column(columnDefinition = "TEXT")
     private String resourceId;
 
-    @Column(nullable = false, columnDefinition = "TEXT", length = 1000)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String src;
 
-    @Column(name = "url", columnDefinition = "TEXT", length = 1000)
+    @Column(name = "url", columnDefinition = "TEXT")
     private String publicUrl;
 
     @Column(name = "template")

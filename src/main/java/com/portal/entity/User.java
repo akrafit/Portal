@@ -100,5 +100,9 @@ public class User {
     public String getYandexUserId() {
         return yandexUserId;
     }
+
+    public boolean hasRole(UserRole role) {
+        return this.role == role;
+    }
 }
 

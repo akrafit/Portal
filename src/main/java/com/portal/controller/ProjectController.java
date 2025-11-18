@@ -4,9 +4,11 @@ import com.portal.dto.ProjectForm;
 import com.portal.dto.YandexResponse;
 import com.portal.entity.Project;
 import com.portal.entity.User;
+import com.portal.enums.UserRole;
 import com.portal.service.GeneralService;
 import com.portal.service.ProjectService;
 import com.portal.service.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/projects")
@@ -33,13 +37,21 @@ public class ProjectController {
 
     @GetMapping
     public String projects(Model model, Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            User user = userService.getCurrentUser(authentication);
-            model.addAttribute("user", user);
+        User user = userService.getCurrentUser(authentication);
+        List<Project> projectList;
+        if (user.hasRole(UserRole.ADMIN)) {
+            projectList =  projectService.findAll();
+        } else if (user.hasRole(UserRole.EMPLOYEE)) {
+            projectList =  projectService.findByUser(user);
+        } else if (user.hasRole(UserRole.CONTRACTOR)) {
+            projectList =  projectService.findWhereUserContractor(user);
+        } else {
+            projectList = java.util.Collections.emptyList();
         }
-        model.addAttribute("projects", projectService.findAll());
-        model.addAttribute("generals", generalService.getAllGenerals());
+        model.addAttribute("projects", projectList);
         model.addAttribute("projectForm", new ProjectForm());
+        model.addAttribute("user", userService.getCurrentUser(authentication));
+        model.addAttribute("generals", generalService.getAllGenerals());
         return "projects";
     }
 
