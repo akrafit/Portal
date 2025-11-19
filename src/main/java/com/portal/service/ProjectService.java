@@ -105,4 +105,8 @@ public class ProjectService {
         List<SectionAssignment> sectionAssignments = sectionAssignmentService.getAssignmentsForUser(user);
         return sectionAssignments.stream().map(SectionAssignment::getProject).toList();
     }
+
+    public Long countProject() {
+        return projectRepository.count();
+    }
 }

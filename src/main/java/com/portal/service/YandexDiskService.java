@@ -21,10 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -256,25 +253,46 @@ public class YandexDiskService {
     public Boolean copyFromTemplateToProject(List<Chapter> chapterList, Project project, Section section) {
         String projectBasePath = "/portal/projects/" + project.getId();
 
-        if(isFolderExists(projectBasePath)){
-            List<Chapter> uniqueChapters = new ArrayList<>();
-            List<Chapter> existChapterList = chapterRepository.findChaptersByProject(project);
-            Set<String> nameFromData = existChapterList.stream().map(Chapter::getName).collect(Collectors.toSet());
-//                List<YandexDiskItem> existingYandexDiskItem = getFilesFromPortalDirectory("/projects/" + project.getId());
-//                Set<String> nameFromDisk = existingYandexDiskItem.stream().map(YandexDiskItem::getName).collect(Collectors.toSet());
-            for (Chapter chapter : chapterList){
-                if(!nameFromData.contains(chapter.getName())){
-                    uniqueChapters.add(chapter);
-                }
-            }
-            return loadChaptersToDisk(uniqueChapters, project, projectBasePath, section);
-        }else{
-            YandexResponse yandexResponse = createFolder(projectBasePath);
-            if (yandexResponse.getError() != null) {
-                return false;////////////////////////////////
-            }
-            return loadChaptersToDisk(chapterList, project, projectBasePath, section);
+        if (!isFolderExists(projectBasePath)) {
+            return false;
         }
+
+        // 1. Находим главы, которые еще не связаны с этой секцией
+        List<Chapter> chaptersToLink = new ArrayList<>();
+        List<Chapter> chaptersToCreate = new ArrayList<>();
+
+        for (Chapter templateChapter : chapterList) {
+            // Ищем главу с таким же именем в проекте
+            Optional<Chapter> existingChapter = chapterRepository
+                    .findByProjectAndName(project, templateChapter.getName());
+
+            if (existingChapter.isPresent()) {
+                Chapter chapter = existingChapter.get();
+                // Проверяем, не связана ли уже глава с этой секцией
+                if (!chapter.getSections().contains(section)) {
+                    chaptersToLink.add(chapter);
+                }
+                // Если уже связана - ничего не делаем
+            } else {
+                // Главы нет в проекте - создаем новую
+                chaptersToCreate.add(templateChapter);
+            }
+        }
+
+        // 2. Связываем существующие главы с новой секцией
+        if (!chaptersToLink.isEmpty()) {
+            chaptersToLink.forEach(chapter -> {
+                chapter.getSections().add(section);
+            });
+            chapterRepository.saveAll(chaptersToLink);
+        }
+
+        // 3. Создаем и загружаем только совершенно новые главы
+        if (!chaptersToCreate.isEmpty()) {
+            return loadChaptersToDisk(chaptersToCreate, project, projectBasePath, section);
+        }
+
+        return true;
     }
 
     private Boolean loadChaptersToDisk(List<Chapter> chapterList, Project project, String projectBasePath, Section section) {
@@ -296,7 +314,10 @@ public class YandexDiskService {
                     newChapter.getSections().add(section);
                     newChapter.setGeneral(project.getGeneral());
                     newChapters.add(newChapter);
-
+                    makeChaptersPublicUrl(List.of(newChapter));
+                    if(newChapter.getPublicUrl().isEmpty()){
+                        return false;
+                    }
                 } else {
                     // Если копирование не удалось, откатываем операцию
                     //rollbackCreatedFiles(yandexDiskService, projectBasePath, newChapters);

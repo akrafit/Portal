@@ -40,7 +40,7 @@ public class ChapterService {
     }
 
     public Chapter createChapterForSectionTemplate(Chapter chapter) {
-        yandexDiskService.makeChaptersPublicUrl(new ArrayList<>(Collections.singleton(chapter)));
+        yandexDiskService.makeChaptersPublicUrl(List.of(chapter));
         return chapterRepository.save(chapter);
     }
 
@@ -103,5 +103,9 @@ public class ChapterService {
 
     public void deleteChapter(Long chapterId) {
         chapterRepository.deleteById(chapterId);
+    }
+
+    public Long countChapter() {
+        return chapterRepository.count();
     }
 }

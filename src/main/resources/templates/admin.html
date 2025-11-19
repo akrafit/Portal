@@ -383,17 +383,17 @@
     <div class="stats-grid">
         <div class="stat-card users">
             <div class="stat-icon">👥</div>
-            <div class="stat-number">24</div>
+            <div th:text="${userCount}" class="stat-number">24</div>
             <div class="stat-label">Пользователей</div>
         </div>
         <div class="stat-card projects">
             <div class="stat-icon">📁</div>
-            <div class="stat-number">156</div>
+            <div th:text="${projectCount}" class="stat-number">156</div>
             <div class="stat-label">Проектов</div>
         </div>
         <div class="stat-card documents">
             <div class="stat-icon">📄</div>
-            <div class="stat-number">892</div>
+            <div th:text="${chapterCount}" class="stat-number">892</div>
             <div class="stat-label">Документов</div>
         </div>
         <div class="stat-card activity">

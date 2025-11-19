@@ -36,4 +36,6 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
                                                                    @Param("section") Section section);
 
     Long countChapterByProject(Project project);
+
+    Optional<Chapter> findByProjectAndName(Project project, String name);
 }

@@ -58,7 +58,6 @@ public class ProjectChapterController {
                 List<SectionStatusDto> sectionStatuses = sections.stream()
                         .map(section -> {
                             SectionStatusDto dto = SectionStatusDto.from(section, project);
-                            // Добавляем информацию о назначенных пользователях
                             List<User> assignedUsers = sectionAssignmentService.getAssignedUsersForSection(project, section);
                             dto.setAssignedUsers(assignedUsers);
                             return dto;
@@ -81,11 +80,8 @@ public class ProjectChapterController {
             }
             Long size = chapterService.countChaptersToProject(project);
             List<User> availableContractors = sectionAssignmentService.getAvailableContractors();
-
             model.addAttribute("project", project);
-
             model.addAttribute("size", size);
-            //model.addAttribute("sections", sections);
             model.addAttribute("availableContractors", availableContractors);
 
             return "project";

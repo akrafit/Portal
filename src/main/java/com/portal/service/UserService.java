@@ -51,4 +51,8 @@ public class UserService {
     public User findById(Long userId) {
         return userRepository.findUserById(userId);
     }
+
+    public Long countUser() {
+        return userRepository.count();
+    }
 }
