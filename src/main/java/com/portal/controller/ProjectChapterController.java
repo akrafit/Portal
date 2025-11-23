@@ -119,7 +119,6 @@ public class ProjectChapterController {
             // Проверяем права: только создатель проекта с ролью EMPLOYEE может назначать
             if (!isProjectCreator(projectId, currentUser) || !currentUser.getRole().equals(UserRole.EMPLOYEE)) {
                 redirectAttributes.addFlashAttribute("error", "Недостаточно прав для назначения ответственного");
-                System.out.println("Недостаточно прав для назначения ответственного");
                 return "redirect:/projects/" + projectId + "/documents";
             }
 
@@ -128,14 +127,12 @@ public class ProjectChapterController {
 
             // Проверяем, что пользователь действительно CONTRACTOR
             if (!contractor.getRole().equals(UserRole.CONTRACTOR)) {
-                System.out.println("Можно назначать только пользователей с ролью CONTRACTOR");
                 redirectAttributes.addFlashAttribute("error", "Можно назначать только пользователей с ролью CONTRACTOR");
                 return "redirect:/projects/" + projectId + "/documents";
             }
 
             sectionAssignmentService.assignUserToSection(project, section, contractor);
             redirectAttributes.addFlashAttribute("success", "Пользователь успешно назначен на раздел");
-            System.out.println("Пользователь успешно назначен на раздел");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Ошибка при назначении пользователя: " + e.getMessage());

@@ -1,27 +1,33 @@
 package com.portal.controller;
 
+import com.portal.dto.YandexDiskItem;
+import com.portal.dto.YandexDiskUploadResponse;
 import com.portal.entity.General;
 import com.portal.entity.Chapter;
+import com.portal.entity.GeneralSection;
 import com.portal.entity.Section;
 import com.portal.service.GeneralService;
 import com.portal.service.ChapterService;
 import com.portal.service.SectionService;
 import com.portal.dto.ChapterForm;
 import com.portal.service.YandexDiskService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/generals")
 public class GeneralController {
-
-    private static final Logger logger = LoggerFactory.getLogger(GeneralController.class);
 
     private final GeneralService generalService;
     private final ChapterService chapterService;
@@ -65,7 +71,13 @@ public class GeneralController {
                         .collect(Collectors.toSet());
                 chapterSectionMap.put(chapter.getId(), sectionIds);
             }
+            Map<Long, Chapter> generalSectionMap = new HashMap<>();
+            List<GeneralSection> generalSections = generalService.findByGeneral(general);
+            for (GeneralSection gs : generalSections) {
+                generalSectionMap.put(gs.getSection().getId(), gs.getChapter());
+            }
 
+            model.addAttribute("generalSectionMap", generalSectionMap);
             model.addAttribute("general", general);
             model.addAttribute("chapters", chapters);
             model.addAttribute("sections", sections);
@@ -184,5 +196,55 @@ public class GeneralController {
         } catch (Exception e) {
             return "redirect:/admin/generals/" + generalId + "?error=Error+saving+sections";
         }
+    }
+    @PostMapping("/{generalId}/sections/{sectionId}/copy-template")
+    public String copySectionTemplate(@PathVariable Long generalId,
+                                      @PathVariable Long sectionId) {
+        try {
+            Section section = sectionService.getSectionById(sectionId);
+            General general = generalService.getGeneralById(generalId);
+
+            if (section == null || section.getTemplateChapter() == null || general == null) {
+                return "redirect:/admin/generals/" + generalId + "?error=Section+or+template+not+found";
+            }
+
+            // Проверяем, нет ли уже шаблона для этой связи
+            GeneralSection existing = generalService.findByGeneralAndSection(general, section);
+            if (existing != null) {
+                return "redirect:/admin/generals/" + generalId + "?error=Template+already+exists";
+            }
+
+            // Копируем файл
+            Chapter templateChapter = section.getTemplateChapter();
+            String sourcePath = templateChapter.getPath();
+            String fileName = YandexDiskService.extractFileNameFromPath(sourcePath);
+            String destinationPath = "/portal/templates/" + generalId + "/Шаблон_" + section.getName() + "_" + fileName;
+            YandexDiskUploadResponse copyResult = yandexDiskService.copyFile(sourcePath, destinationPath);
+
+            if (copyResult.getError() == null) {
+                // Создаем Chapter для шаблона
+                YandexDiskItem copiedFile = yandexDiskService.getFileInfo(destinationPath);
+                Chapter newChapter = new Chapter(copiedFile, null);
+                //newChapter.setGeneral(general);
+                newChapter.setName("Шаблон_" + section.getName() + "_" + fileName);
+                newChapter.setTemplate(true); // Помечаем как шаблон
+                Chapter savedChapter = chapterService.saveChapter(newChapter);
+                yandexDiskService.makeChaptersPublicUrl(List.of(savedChapter));
+
+                // Создаем связь в general_section
+                GeneralSection generalSection = new GeneralSection();
+                generalSection.setGeneral(general);
+                generalSection.setSection(section);
+                generalSection.setChapter(savedChapter);
+                generalSection.setCreatedAt(LocalDateTime.now());
+                generalService.save(generalSection);
+                chapterService.loadBookMarkToFile(generalSection);
+
+                return "redirect:/admin/generals/" + generalId + "?success=Template+copied";
+            }
+        } catch (Exception e) {
+            return "redirect:/admin/generals/" + generalId + "?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+        }
+        return "redirect:/admin/generals/" + generalId + "?error=Error+copying+template";
     }
 }

@@ -1,69 +1,4 @@
-// JavaScript для обработки множественных чекбоксов
-document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('.section-checkbox');
-
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const form = this.closest('form');
-            const sectionIds = [];
-
-            // Собираем все отмеченные чекбоксы для этой главы
-            const row = this.closest('tr');
-            const rowCheckboxes = row.querySelectorAll('.section-checkbox:checked');
-            rowCheckboxes.forEach(cb => {
-                sectionIds.push(cb.previousElementSibling.value);
-            });
-
-            // Создаем скрытые input для всех выбранных sectionIds
-            form.querySelectorAll('input[name="sectionIds"]').forEach(input => input.remove());
-            sectionIds.forEach(sectionId => {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'sectionIds';
-                hiddenInput.value = sectionId;
-                form.appendChild(hiddenInput);
-            });
-
-            form.submit();
-        });
-    });
-});
-
-// Функции для массового выделения/снятия чекбоксов
-function selectAllCheckboxes() {
-    document.querySelectorAll('.section-checkbox').forEach(checkbox => {
-        checkbox.checked = true;
-    });
-}
-
-function deselectAllCheckboxes() {
-    document.querySelectorAll('.section-checkbox').forEach(checkbox => {
-        checkbox.checked = false;
-    });
-}
-
-// Подтверждение сохранения
-document.getElementById('sectionsForm').addEventListener('submit', function(e) {
-    const checkedCount = document.querySelectorAll('.section-checkbox:checked').length;
-    if (checkedCount > 0) {
-        if (!confirm(`Сохранить привязки для ${checkedCount} отмеченных связей?`)) {
-            e.preventDefault();
-        }
-    } else {
-        if (!confirm('Все связи будут очищены. Продолжить?')) {
-            e.preventDefault();
-        }
-    }
-});
-
-// Показываем сообщения об успехе/ошибке
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.has('success')) {
-    //alert('Привязки успешно сохранены!');
-} else if (urlParams.has('error')) {
-    alert('Ошибка при сохранении привязок!');
-}
-// upload.js
+// upload.js - только для загрузки файлов глав
 let currentXHR = null;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -82,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             displayFileInfo(file);
             setTimeout(() => {
                 startUpload(file);
-            }, 500); // Небольшая задержка для UX
+            }, 500);
         }
     });
 
@@ -109,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             const file = files[0];
-            fileInput.files = files; // Устанавливаем файл в input
+            fileInput.files = files;
             displayFileInfo(file);
             setTimeout(() => {
                 startUpload(file);
@@ -177,7 +112,7 @@ function startUpload(file) {
 
                 // Проверяем наличие ошибки в ответе независимо от статуса
                 if (result.error) {
-                    handleError(result.error); // Показываем текст ошибки от сервера
+                    handleError(result.error);
                     return;
                 }
 
@@ -249,7 +184,6 @@ function resetForm() {
     currentXHR = null;
 }
 
-// Остальные функции остаются без изменений
 function updateProgress(percent, text) {
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
@@ -290,28 +224,31 @@ function handleError(message) {
 }
 
 function showMessage(message, type) {
-    // Можно добавить красивые уведомления вместо alert
     console.log(`${type}: ${message}`);
 }
-// В обработчике drop для множественных файлов
-uploadFormContainer.addEventListener('drop', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadFormContainer.classList.remove('drag-over');
+// Обработчики для кнопок шаблонов разделов
+document.addEventListener('DOMContentLoaded', function() {
+    // Копирование шаблона
+    document.querySelectorAll('.copy-template-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const sectionId = this.getAttribute('data-section-id');
+            const form = document.getElementById('copy-template-form-' + sectionId);
+            if (form) {
+                form.submit();
+            }
+        });
+    });
 
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        // Для одного файла
-        if (files.length === 1) {
-            const file = files[0];
-            fileInput.files = files;
-            displayFileInfo(file);
-            setTimeout(() => {
-                startUpload(file);
-            }, 500);
-        } else {
-            // Для нескольких файлов
-            alert('Пожалуйста, загружайте файлы по одному');
-        }
-    }
+    // Удаление шаблона
+    document.querySelectorAll('.delete-template-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const sectionId = this.getAttribute('data-section-id');
+            if (confirm('Удалить шаблон раздела?')) {
+                const form = document.getElementById('delete-template-form-' + sectionId);
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    });
 });

@@ -1,17 +1,13 @@
 package com.portal.service;
 
 import com.portal.dto.YandexDiskItem;
-import com.portal.entity.Chapter;
-import com.portal.entity.General;
-import com.portal.entity.Project;
-import com.portal.entity.Section;
+import com.portal.entity.*;
 import com.portal.repo.ChapterRepository;
 import com.portal.repo.GeneralRepository;
 import com.portal.repo.SectionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -22,13 +18,15 @@ public class ChapterService {
     private final SectionRepository sectionRepository;
     private final ChapterSyncService chapterSyncService;
     private final YandexDiskService yandexDiskService;
+    private final SimpleBookmarkService simpleBookmarkService;
 
-    public ChapterService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository, ChapterSyncService chapterSyncService, YandexDiskService yandexDiskService) {
+    public ChapterService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository, ChapterSyncService chapterSyncService, YandexDiskService yandexDiskService, SimpleBookmarkService simpleBookmarkService) {
         this.chapterRepository = chapterRepository;
         this.generalRepository = generalRepository;
         this.sectionRepository = sectionRepository;
         this.chapterSyncService = chapterSyncService;
         this.yandexDiskService = yandexDiskService;
+        this.simpleBookmarkService = simpleBookmarkService;
     }
 
     public Chapter createChapter(Chapter chapter, Long generalId) {
@@ -107,5 +105,14 @@ public class ChapterService {
 
     public Long countChapter() {
         return chapterRepository.count();
+    }
+
+    public Chapter saveChapter(Chapter newChapter) {
+        return chapterRepository.save(newChapter);
+    }
+
+    public void loadBookMarkToFile(GeneralSection generalSection) {
+        List<Chapter> chapterList = chapterRepository.findByGeneralAndTemplateTrueAndContainingSection(generalSection.getGeneral(),generalSection.getSection());
+        simpleBookmarkService.generateBookMark(generalSection.getChapter(),chapterList);
     }
 }

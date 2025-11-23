@@ -8,12 +8,15 @@ import com.portal.entity.Section;
 import com.portal.repo.ChapterRepository;
 import com.portal.repo.ProjectRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -21,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,10 +36,13 @@ public class YandexDiskService {
     private final ChapterRepository chapterRepository;
     private final ProjectRepository projectRepository;
 
-    public YandexDiskService(WebClient yandexDiskWebClient, ChapterRepository chapterRepository, ProjectRepository projectRepository) {
+    private final WebClient downloadWebClient;
+
+    public YandexDiskService(WebClient yandexDiskWebClient, ChapterRepository chapterRepository, ProjectRepository projectRepository, WebClient downloadWebClient) {
         this.webClient = yandexDiskWebClient;
         this.chapterRepository = chapterRepository;
         this.projectRepository = projectRepository;
+        this.downloadWebClient = downloadWebClient;
     }
 
     public List<YandexDiskItem> getFilesFromPortalDirectory(String path) {
@@ -355,7 +362,9 @@ public class YandexDiskService {
         }
     }
 
-    private YandexDiskUploadResponse copyFile(String path, String newFilePath) {
+    public YandexDiskUploadResponse copyFile(String path, String newFilePath) {
+        System.out.println(path);
+        System.out.println(newFilePath);
         try {
             return webClient.post()
                     .uri(uriBuilder -> uriBuilder
@@ -422,7 +431,7 @@ public class YandexDiskService {
     }
 
     // Вспомогательный метод для извлечения имени файла из пути
-    private String extractFileNameFromPath(String path) {
+    public static String extractFileNameFromPath(String path) {
         if (path == null || path.isEmpty()) {
             return "chapter_" + System.currentTimeMillis();
         }
@@ -458,6 +467,182 @@ public class YandexDiskService {
         }
         chapterRepository.saveAll(chapterList);
     }
+    /**
+     * Скачивает файл с Яндекс Диска (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+     */
+    public byte[] downloadFile(String filePath) {
+        try {
+            // 1. Получаем ссылку для скачивания
+            String downloadUrl = getDownloadUrl(filePath);
+            System.out.println("✅ Получена ссылка для скачивания: " + downloadUrl);
+
+            // 2. Скачиваем файл с правильными заголовками
+            return WebClient.builder()
+                    .defaultHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .defaultHeader(HttpHeaders.ACCEPT, "*/*")
+                    .build()
+                    .get()
+                    .uri(downloadUrl)
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)))
+                    .doOnSuccess(data -> {
+                        if (data != null) {
+                            System.out.println("✅ Файл успешно скачан, размер: " + data.length + " байт");
+                        } else {
+                            System.out.println("⚠️  Скачанный файл пустой");
+                        }
+                    })
+                    .doOnError(error -> {
+                        System.err.println("❌ Ошибка скачивания: " + error.getMessage());
+                        if (error instanceof WebClientResponseException) {
+                            WebClientResponseException wcre = (WebClientResponseException) error;
+                            System.err.println("Статус: " + wcre.getStatusCode());
+                            System.err.println("Тело ответа: " + wcre.getResponseBodyAsString());
+                        }
+                    })
+                    .block(Duration.ofSeconds(30)); // Таймаут 30 секунд
+
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка скачивания файла '" + filePath + "': " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Альтернативная версия с улучшенной обработкой ошибок
+     */
+    public byte[] downloadFileWithRetry(String filePath, int maxRetries) {
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                System.out.println("Попытка скачивания " + attempt + "/" + maxRetries);
+                return downloadFile(filePath);
+            } catch (Exception e) {
+                if (attempt == maxRetries) {
+                    throw new RuntimeException("Не удалось скачать файл после " + maxRetries + " попыток: " + e.getMessage(), e);
+                }
+                System.err.println("Попытка " + attempt + " не удалась: " + e.getMessage());
+
+                // Ждем перед повторной попыткой
+                try {
+                    Thread.sleep(1000 * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Прервано ожидание перед повторной попыткой", ie);
+                }
+            }
+        }
+        throw new RuntimeException("Неожиданная ошибка при скачивании файла");
+    }
+
+    /**
+     * Получает ссылку для скачивания файла
+     */
+    private String getDownloadUrl(String filePath) {
+        try {
+            YandexResponse response = webClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/resources/download")
+                            .queryParam("path", filePath)
+                            .build())
+                    .retrieve()
+                    .bodyToMono(YandexResponse.class)
+                    .doOnNext(resp -> System.out.println("Получен ответ от Яндекс API: " + resp.getHref()))
+                    .doOnError(error -> System.err.println("Ошибка получения ссылки: " + error.getMessage()))
+                    .block();
+
+            if (response == null || response.getHref() == null) {
+                throw new RuntimeException("Пустой ответ от Яндекс API для файла: " + filePath);
+            }
+
+            return response.getHref();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Не удалось получить ссылку для скачивания файла: " + filePath + " - " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Загружает файл на Яндекс Диск
+     */
+    public void uploadFile(String filePath, byte[] content) {
+        try {
+            // 1. Получаем ссылку для загрузки
+            String uploadUrl = getUploadUrl(filePath);
+            System.out.println("Получена ссылка для загрузки: " + uploadUrl);
+
+            // 2. Загружаем файл
+            downloadWebClient
+                    .put()
+                    .uri(uploadUrl)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header("User-Agent", "Mozilla/5.0")
+                    .bodyValue(content)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .doOnSuccess(response -> System.out.println("Файл успешно загружен: " + filePath))
+                    .doOnError(error -> System.err.println("Ошибка загрузки: " + error.getMessage()))
+                    .block();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка загрузки файла: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Получает ссылку для загрузки файла
+     */
+    private String getUploadUrl(String filePath) {
+        try {
+            YandexResponse response = webClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/resources/upload")
+                            .queryParam("path", filePath)
+                            .queryParam("overwrite", "true")
+                            .build())
+                    .retrieve()
+                    .bodyToMono(YandexResponse.class)
+                    .block();
+
+            if (response == null || response.getHref() == null) {
+                throw new RuntimeException("Не удалось получить ссылку для загрузки файла: " + filePath);
+            }
+
+            return response.getHref();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка получения ссылки для загрузки: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Получает информацию о файле
+     */
+//    public Map<String, Object> getFileInfo(String filePath) {
+//        return webClient
+//                .get()
+//                .uri(uriBuilder -> uriBuilder
+//                        .path("/resources")
+//                        .queryParam("path", filePath)
+//                        .build())
+//                .retrieve()
+//                .bodyToMono(Map.class)
+//                .block();
+//    }
+
+    /**
+     * Проверяет существование файла
+     */
+//    public boolean fileExists(String filePath) {
+//        try {
+//            Map<String, Object> fileInfo = getFileInfo(filePath);
+//            return fileInfo != null && !fileInfo.isEmpty();
+//        } catch (Exception e) {
+//            return false;
+//        }
+//    }
+
 
     // Метод для отката созданных файлов в случае ошибки
 //    private void rollbackCreatedFiles(String basePath, List<Chapter> createdChapters) {

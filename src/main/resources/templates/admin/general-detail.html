@@ -91,8 +91,51 @@
             opacity: 0.8;
             margin-top: 10px;
         }
-    </style>
 
+        /* Стили для шаблонов разделов */
+        .template-section {
+            min-height: 80px;
+        }
+
+        .drag-drop-text {
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #666;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-input-label {
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .file-info {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-4">
@@ -106,6 +149,7 @@
             <a href="/admin/generals" class="btn btn-secondary">← Назад к списку</a>
         </div>
     </div>
+
     <!-- Навигация -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
@@ -120,17 +164,18 @@
         <div>Файл успешно загружен!</div>
         <div class="countdown" id="countdownText">Перезагрузка через 3 секунды...</div>
     </div>
-    <div class="upload-form" id="uploadFormContainer">
 
+    <!-- Форма загрузки файлов для глав -->
+    <div class="upload-form" id="uploadFormContainer">
         <div class="drag-drop-text">
-            Перетащите файл сюда или выберите вручную
+            Перетащите файл сюда или выберите вручную для загрузки новой главы
         </div>
 
         <div class="form-group">
             <div class="file-input-wrapper">
                 <input type="file" id="file" name="file" required>
                 <div class="file-input-label" id="fileInputLabel">
-                    📁
+                    📁 Выберите файл или перетащите его сюда
                 </div>
             </div>
             <div class="file-info" id="fileInfo">
@@ -141,7 +186,7 @@
         </div>
 
         <!-- Скрытое поле для generalId -->
-        <input type="hidden" id="generalId" name="generalId" th:value="${general.getId()}"> <!-- Замените на актуальный ID -->
+        <input type="hidden" id="generalId" name="generalId" th:value="${general.getId()}">
 
         <!-- Прогресс-бар -->
         <div class="progress-container" id="progressContainer">
@@ -164,22 +209,77 @@
             <p class="mb-0 text-muted">Отметьте чекбоксы и нажмите "Сохранить привязки"</p>
         </div>
         <div class="card-body">
+            <!-- Формы для шаблонов разделов (ВНЕ формы чекбоксов) -->
+            <div style="display: none;">
+                <form th:each="section : ${sections}"
+                      th:if="${section.templateChapter != null && (generalSectionMap == null || !generalSectionMap.containsKey(section.id))}"
+                      th:action="@{/admin/generals/{generalId}/sections/{sectionId}/copy-template(generalId=${general.id}, sectionId=${section.id})}"
+                      method="post"
+                      th:id="'copy-template-form-' + ${section.id}">
+                </form>
+                <form th:each="section : ${sections}"
+                      th:if="${generalSectionMap != null && generalSectionMap.containsKey(section.id)}"
+                      th:action="@{/admin/generals/{generalId}/sections/{sectionId}/template/delete(generalId=${general.id}, sectionId=${section.id})}"
+                      method="post"
+                      th:id="'delete-template-form-' + ${section.id}">
+                </form>
+            </div>
+
+            <!-- Основная форма для чекбоксов -->
             <form id="sectionsForm" th:action="@{/admin/generals/{id}/save-sections(id=${general.id})}" method="post">
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                         <tr>
                             <th>Глава</th>
-                            <th th:each="section : ${sections}" th:text="${section.name}"></th>
+                            <th th:each="section : ${sections}">
+                                <div class="d-flex flex-column align-items-center template-section">
+                                    <span th:text="${section.name}" class="mb-2 fw-bold"></span>
+
+                                    <!-- Блок управления шаблоном (теперь только кнопки, формы скрыты выше) -->
+                                    <div class="d-flex gap-1 align-items-center">
+                                        <!-- Кнопка копирования шаблона -->
+                                        <button th:if="${section.templateChapter != null && (generalSectionMap == null || !generalSectionMap.containsKey(section.id))}"
+                                                type="button"
+                                                class="btn btn-sm btn-success copy-template-btn"
+                                                th:data-section-id="${section.id}"
+                                                title="Добавить шаблон раздела">
+                                            +
+                                        </button>
+
+                                        <!-- Если шаблон уже скопирован в generalSectionMap -->
+                                        <div th:if="${generalSectionMap != null && generalSectionMap.containsKey(section.id)}">
+                                            <a th:href="${generalSectionMap[section.id].publicUrl}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-success me-1" title="Скачать шаблон">
+                                                📥
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger delete-template-btn"
+                                                    th:data-section-id="${section.id}"
+                                                    title="Удалить шаблон">
+                                                ×
+                                            </button>
+                                        </div>
+
+                                        <!-- Сообщение если нет исходного шаблона -->
+                                        <span th:if="${section.templateChapter == null}" class="text-muted small">
+                                            Нет шаблона
+                                        </span>
+                                    </div>
+                                </div>
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:each="chapter : ${chapters}">
                             <td>
-                                <a th:href="@{${chapter.getPublicUrl()}}"><strong th:text="${chapter.name}"></strong></a>
+                                <a th:href="@{${chapter.getPublicUrl()}}" target="_blank">
+                                    <strong th:text="${chapter.name}"></strong>
+                                </a>
                             </td>
                             <td th:each="section : ${sections}">
-                                <div class="form-check">
+                                <div class="form-check d-flex justify-content-center">
                                     <input class="form-check-input section-checkbox"
                                            type="checkbox"
                                            name="chapterSections"
@@ -199,7 +299,16 @@
             </form>
         </div>
     </div>
+
+    <!-- Сообщения об успехе/ошибке -->
+    <div th:if="${param.success}" class="alert alert-success mt-3">
+        Операция выполнена успешно!
+    </div>
+    <div th:if="${param.error}" class="alert alert-danger mt-3">
+        Ошибка: <span th:text="${param.error}"></span>
+    </div>
 </div>
+
 <script src="/js/upload.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
