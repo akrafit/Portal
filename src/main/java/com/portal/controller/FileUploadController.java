@@ -1,14 +1,15 @@
 package com.portal.controller;
 
 import com.portal.dto.FileItem;
-import com.portal.entity.General;
-import com.portal.service.ChapterService;
-import com.portal.service.GeneralService;
-import com.portal.service.LocalFileService;
+import com.portal.entity.*;
+import com.portal.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -18,13 +19,105 @@ public class FileUploadController {
     private final LocalFileService localFileService;
     private final ChapterService chapterService;
     private final GeneralService generalService;
+    private final SectionService sectionService;
+    private final GeneralSectionService generalSectionService;
+    private final ProjectService projectService;
 
     public FileUploadController(LocalFileService localFileService,
                                 ChapterService chapterService,
-                                GeneralService generalService) {
+                                GeneralService generalService,
+                                SectionService sectionService,
+                                GeneralSectionService generalSectionService, ProjectService projectService) {
         this.localFileService = localFileService;
         this.chapterService = chapterService;
         this.generalService = generalService;
+        this.sectionService = sectionService;
+        this.generalSectionService = generalSectionService;
+        this.projectService = projectService;
+    }
+
+    /**
+     * Загружает шаблон для конкретного раздела и создает запись в GeneralSection
+     * Путь: portal/section/{generalId}/section_{sectionId}_имя_файла
+     */
+    @PostMapping("/upload/section-template/{generalId}/{sectionId}")
+    public ResponseEntity<FileItem> uploadSectionTemplate(
+            @RequestParam("file") MultipartFile file,
+            @PathVariable Long generalId,
+            @PathVariable Long sectionId) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(new FileItem("Отсутствует файл"));
+            }
+
+            General general = generalService.getGeneralById(generalId);
+            if (general == null) {
+                return ResponseEntity.badRequest().body(new FileItem("General не найден"));
+            }
+
+            Section section = sectionService.getSectionById(sectionId);
+            if (section == null) {
+                return ResponseEntity.badRequest().body(new FileItem("Раздел не найден"));
+            }
+
+
+            // Сохраняем файл локально
+            String filePath = localFileService.saveTemplateSectionFile(file, generalId);
+
+
+            Chapter chapter = new Chapter();
+            chapter.setName(file.getOriginalFilename());
+            chapter.setPath(filePath);
+            chapter.setSize(file.getSize());
+            chapter.setTemplate(true);
+            chapter.setGeneral(general);
+            chapter.setSrc(filePath);
+            chapter.setType(String.valueOf(Type.SECTION));
+            chapter.setCreated(String.valueOf(LocalDateTime.now()));
+
+            // Сохраняем Chapter для шаблона раздела
+            chapterService.saveChapter(chapter);
+
+            // Создаем или обновляем запись в GeneralSection
+            generalSectionService.createOrUpdateGeneralSection(general, section, chapter);
+
+            return ResponseEntity.ok(new FileItem());
+        } catch (Exception e) {
+            log.error("Ошибка загрузки шаблона для раздела: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(new FileItem("Ошибка загрузки шаблона раздела: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Удаляет привязку шаблона к разделу
+     */
+    @DeleteMapping("/remove/section-template/{generalId}/{sectionId}")
+    public ResponseEntity<?> removeSectionTemplate(
+            @PathVariable Long generalId,
+            @PathVariable Long sectionId) {
+        try {
+            // Находим и удаляем запись GeneralSection
+            General general = generalService.getGeneralById(generalId);
+            Section section = sectionService.getSectionById(sectionId);
+            GeneralSection generalSection = generalSectionService.findByGeneralIdAndSectionId(general,section);
+
+            if (generalSection != null) {
+                // Удаляем связанную главу
+                Chapter chapter = generalSection.getChapter();
+                if (chapter != null && chapter.getPath() != null) {
+                    localFileService.deleteFile(chapter.getPath());
+                    chapterService.deleteChapter(chapter.getId());
+                }
+
+                // Удаляем запись GeneralSection
+                generalSectionService.delete(generalSection);
+            }
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Ошибка удаления шаблона раздела: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Ошибка удаления шаблона раздела: " + e.getMessage());
+        }
     }
 
     /**
@@ -46,16 +139,20 @@ public class FileUploadController {
             // Сохраняем файл локально
             String filePath = localFileService.saveTemplateFile(file, generalId);
 
-            // Создаем запись в БД
-            FileItem item = new FileItem();
-            item.setName(file.getOriginalFilename());
-            item.setPath(filePath);
-            item.setType("file");
-            item.setSize(file.getSize());
+            Chapter chapter = new Chapter();
+            chapter.setName(file.getOriginalFilename());
+            chapter.setPath(filePath);
+            chapter.setSize(file.getSize());
+            chapter.setTemplate(true);
+            chapter.setGeneral(general);
+            chapter.setSrc(filePath);
+            chapter.setType(String.valueOf(Type.GENERAL));
+            chapter.setCreated(String.valueOf(LocalDateTime.now()));
 
-            chapterService.createChapterForTemplate(item, generalId);
+            // Сохраняем Chapter для шаблона раздела
+            chapterService.saveChapter(chapter);
 
-            return ResponseEntity.ok(item);
+            return ResponseEntity.ok(new FileItem());
         } catch (Exception e) {
             log.error("Ошибка загрузки файла в шаблон: {}", e.getMessage());
             return ResponseEntity.badRequest().body(new FileItem("Ошибка загрузки: " + e.getMessage()));
@@ -68,16 +165,26 @@ public class FileUploadController {
     @PostMapping("/upload/project/{projectId}")
     public ResponseEntity<FileItem> uploadToProject(@RequestParam("file") MultipartFile file,
                                                     @PathVariable Long projectId) {
+        Optional<Project> project = projectService.findById(projectId);
+        if(project.isEmpty()){
+            return ResponseEntity.badRequest().body(new FileItem("Ошибка загрузки"));
+        }
         try {
             String filePath = localFileService.saveProjectFile(file, projectId);
 
-            FileItem item = new FileItem();
-            item.setName(file.getOriginalFilename());
-            item.setPath(filePath);
-            item.setType("file");
-            item.setSize(file.getSize());
+            Chapter chapter = new Chapter();
+            chapter.setName(file.getOriginalFilename());
+            chapter.setPath(filePath);
+            chapter.setSize(file.getSize());
+            chapter.setTemplate(true);
+            chapter.setProject(project.get());
+            chapter.setSrc(filePath);
+            chapter.setType(String.valueOf(Type.CHAPTER));
+            chapter.setCreated(String.valueOf(LocalDateTime.now()));
+            // Сохраняем Chapter
+            chapterService.saveChapter(chapter);
 
-            return ResponseEntity.ok(item);
+            return ResponseEntity.ok(new FileItem());
         } catch (Exception e) {
             log.error("Ошибка загрузки файла в проект: {}", e.getMessage());
             return ResponseEntity.badRequest().body(new FileItem("Ошибка загрузки: " + e.getMessage()));

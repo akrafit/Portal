@@ -1,0 +1,23 @@
+onlyoffice:
+  document-server:
+    # URL в Docker сети
+    url: http://onlyoffice
+
+    # Или для отладки с хоста (менять на продакшене):
+    # url: http://host.docker.internal:8083
+
+    # JWT настройки (должны совпадать с onlyoffice)
+    jwt:
+      enabled: true
+      secret: supersecret
+      header: Authorization
+      in-body: false
+
+    # Таймауты
+    request-timeout: 120000  # 2 минуты
+    convert-timeout: 120000
+
+    # Дополнительные настройки
+    callback:
+      max-retry-count: 3
+      retry-interval: 5000

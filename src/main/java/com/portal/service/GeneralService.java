@@ -8,6 +8,7 @@ import com.portal.repo.GeneralSectionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GeneralService {
@@ -65,5 +66,9 @@ public class GeneralService {
 
     public void save(GeneralSection generalSection) {
         generalSectionRepository.save(generalSection);
+    }
+
+    public Optional<Object> findById(Long generalId) {
+        return Optional.of(generalRepository.findById(generalId));
     }
 }

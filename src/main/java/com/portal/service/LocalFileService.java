@@ -57,6 +57,15 @@ public class LocalFileService {
         }
     }
 
+    public String saveTemplateSectionFile(MultipartFile file, Long generalId) {
+        try {
+            String relativePath = "portal/section/" + generalId;
+            return saveFile(file, relativePath);
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка сохранения файла шаблона секции: " + e.getMessage(), e);
+        }
+    }
+
     /**
      * Универсальный метод сохранения файла
      */

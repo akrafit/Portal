@@ -1,9 +1,6 @@
 package com.portal.repo;
 
-import com.portal.entity.Chapter;
-import com.portal.entity.General;
-import com.portal.entity.Project;
-import com.portal.entity.Section;
+import com.portal.entity.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     List<Chapter> findByGeneralId(Long generalId);
-    List<Chapter> findByGeneralAndTemplateTrue(General general);
+    List<Chapter> findByGeneralAndTemplateTrueAndType(General general, String type);
 
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
             "FROM Chapter c JOIN c.sections s WHERE c.id = :chapterId AND s.id = :sectionId")

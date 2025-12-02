@@ -1,0 +1,36 @@
+package com.portal.controller.admin;
+
+import com.portal.entity.Chapter;
+import com.portal.entity.Section;
+import com.portal.service.ChapterService;
+import com.portal.service.GeneralService;
+import com.portal.service.SectionService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+
+@Controller
+@RequestMapping("/template/{generalId}")
+public class DocumentController {
+    private final GeneralService generalService;
+    private final SectionService sectionService;
+    private final ChapterService chapterService;
+
+    public DocumentController(GeneralService generalService, SectionService sectionService, ChapterService chapterService) {
+        this.generalService = generalService;
+        this.sectionService = sectionService;
+        this.chapterService = chapterService;
+    }
+
+    @GetMapping("/document/{chapterId}")
+    public String openDocument(@PathVariable Long generalId,
+                               @PathVariable Long chapterId,
+                               Model model) {
+        Chapter chapter = chapterService.findById(chapterId);
+        model.addAttribute("chapter", chapter);
+        return "document"; // Thymeleaf-шаблон document.html
+    }
+}

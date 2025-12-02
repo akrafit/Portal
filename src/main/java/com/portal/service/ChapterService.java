@@ -64,7 +64,7 @@ public class ChapterService {
     }
     public List<Chapter> getChaptersByGeneralTemplate(General general) {
         // УБИРАЕМ вызов makeChaptersPublicUrl - больше не нужно открывать доступ через Яндекс.Диск
-        return chapterRepository.findByGeneralAndTemplateTrue(general);
+        return chapterRepository.findByGeneralAndTemplateTrueAndType(general, String.valueOf(Type.GENERAL));
     }
 
     public List<Chapter> getChaptersByGeneralTemplate(General general, Section section) {

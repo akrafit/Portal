@@ -1,4 +1,4 @@
-package com.portal.controller;
+package com.portal.controller.admin;
 
 import com.portal.service.ChapterService;
 import com.portal.service.ProjectService;

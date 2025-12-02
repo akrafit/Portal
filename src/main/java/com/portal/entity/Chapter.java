@@ -58,6 +58,8 @@ public class Chapter {
     )
     private List<Section> sections = new ArrayList<>();
 
+    private String type;
+
     public Chapter() {}
 
     public Chapter(String name, String src, General general) {
