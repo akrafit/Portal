@@ -46,6 +46,10 @@ public class YandexDiskItem {
         this.error = error;
     }
 
+    public YandexDiskItem() {
+
+    }
+
     public static class PreviewSize {
         private String url;
         private String name;

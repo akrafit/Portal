@@ -9,6 +9,7 @@ import java.util.List;
 
 @Data
 public class DocumentDto {
+    private Long id;
     private String path;
     private String type;
     private String name;
@@ -23,34 +24,13 @@ public class DocumentDto {
     private String file;
     private String dot;
     private String publicUrl;
-    public DocumentDto(YandexDiskItem yandexDiskItem) {
-        this.path = yandexDiskItem.getPath();
-        this.type = yandexDiskItem.getType();
-        this.name = removeFileExtension(yandexDiskItem.getName());
-        this.created = DateUtils.formatDateTime(yandexDiskItem.getCreated());
-        this.modified = yandexDiskItem.getModified();
-        this.size = yandexDiskItem.getSize();
-        this.mimeType = yandexDiskItem.getMimeType();
-        this.preview = yandexDiskItem.getPreview();
-        this.mediaType = yandexDiskItem.getMediaType();
-        this.file = yandexDiskItem.getFile();
-        this.sizes = yandexDiskItem.getSizes();
-        this.dot = getFileExtension(yandexDiskItem.getName());
-        this.publicUrl = yandexDiskItem.getPublicUrl();
-    }
-
     public DocumentDto(Chapter chapter) {
+        this.id = chapter.getId();
         this.path = chapter.getPath();
-        //this.type = chapter.getType();
         this.name = removeFileExtension(chapter.getName());
         this.created = DateUtils.formatDateTime(chapter.getCreated());
         this.modified = chapter.getModified();
         this.size = chapter.getSize();
-        //this.mimeType = chapter.getMimeType();
-        //this.preview = chapter.getPreview();
-        //this.mediaType = chapter.getMediaType();
-        //this.file = chapter.getFile();
-        //this.sizes = chapter.getSizes();
         this.dot = getFileExtension(chapter.getName());
         this.publicUrl = chapter.getPublicUrl();
     }

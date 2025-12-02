@@ -16,6 +16,9 @@ public class Section {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "description")
+    private String description;
+
     @Column(nullable = false)
     private String name;
 

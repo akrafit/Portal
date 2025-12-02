@@ -4,7 +4,6 @@ import com.portal.dto.YandexResponse;
 import com.portal.entity.*;
 import com.portal.repo.GeneralRepository;
 import com.portal.repo.ProjectRepository;
-import org.springframework.security.access.method.P;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,37 +18,37 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserService userService;
-    private final YandexDiskService yandexDiskService;
+    private final LocalFileService localFileService;
     private final GeneralRepository generalRepository;
     private final ChapterService chapterService;
     private final SectionAssignmentService sectionAssignmentService;
 
-    public ProjectService(ProjectRepository projectRepository, UserService userService, YandexDiskService yandexDiskService, GeneralRepository generalRepository, ChapterService chapterService, SectionAssignmentService sectionAssignmentService) {
+    public ProjectService(ProjectRepository projectRepository, UserService userService, LocalFileService localFileService, GeneralRepository generalRepository, ChapterService chapterService, SectionAssignmentService sectionAssignmentService) {
         this.projectRepository = projectRepository;
         this.userService = userService;
-        this.yandexDiskService = yandexDiskService;
+        this.localFileService = localFileService;
         this.generalRepository = generalRepository;
         this.chapterService = chapterService;
         this.sectionAssignmentService = sectionAssignmentService;
     }
 
-    public YandexResponse createProject(Project project, Authentication authentication, Long generalId) {
-        if (generalId != null) {
-            General general = generalRepository.findById(generalId)
-                    .orElseThrow(() -> new RuntimeException("General not found with id: " + generalId));
-            project.setGeneral(general);
-        }
-        User currentUser = userService.getCurrentUser(authentication);
-        project.setCreatedBy(currentUser);
-        project.setCreatedAt(LocalDateTime.now());
-        projectRepository.save(project);
-        YandexResponse response = yandexDiskService.createFolderForProject(project);
-        if (response.getError() != null ){
-            projectRepository.delete(project);
-            return response;
-        }
-        return response;
-    }
+//    public YandexResponse createProject(Project project, Authentication authentication, Long generalId) {
+//        if (generalId != null) {
+//            General general = generalRepository.findById(generalId)
+//                    .orElseThrow(() -> new RuntimeException("General not found with id: " + generalId));
+//            project.setGeneral(general);
+//        }
+//        User currentUser = userService.getCurrentUser(authentication);
+//        project.setCreatedBy(currentUser);
+//        project.setCreatedAt(LocalDateTime.now());
+//        projectRepository.save(project);
+//        YandexResponse response = yandexDiskService.createFolderForProject(project);
+//        if (response.getError() != null ){
+//            projectRepository.delete(project);
+//            return response;
+//        }
+//        return response;
+//    }
     public Optional<Project> findById(Long id) {
         return projectRepository.findById(id);
     }
@@ -82,7 +81,7 @@ public class ProjectService {
     public Boolean markSectionAsGenerated(Project project, Section section) {
         project.addGeneratedSection(section);
         List<Chapter> chapterList = chapterService.getChaptersByGeneralTemplate(project.getGeneral(), section);
-        Boolean result = yandexDiskService.copyFromTemplateToProject(chapterList, project,section);
+        Boolean result = chapterService.copyFromTemplateToProject(chapterList, project,section);
         if (result){
             projectRepository.save(project);
             return true;
@@ -108,5 +107,30 @@ public class ProjectService {
 
     public Long countProject() {
         return projectRepository.count();
+    }
+    /**
+     * Новый метод для создания проекта с локальным файловым хранилищем
+     */
+    public void createProjectLocal(Project project, Authentication authentication, Long generalId) {
+        if (generalId != null) {
+            General general = generalRepository.findById(generalId)
+                    .orElseThrow(() -> new RuntimeException("General not found with id: " + generalId));
+            project.setGeneral(general);
+        }
+        User currentUser = userService.getCurrentUser(authentication);
+        project.setCreatedBy(currentUser);
+        project.setCreatedAt(LocalDateTime.now());
+
+        // Сначала сохраняем проект чтобы получить ID
+        projectRepository.save(project);
+
+        try {
+            // Создаем папку проекта в локальном хранилище
+            localFileService.createProjectFolder(project.getId());
+        } catch (Exception e) {
+            // Если не удалось создать папку, удаляем проект и пробрасываем исключение
+            projectRepository.delete(project);
+            throw new RuntimeException("Не удалось создать файловую структуру проекта: " + e.getMessage());
+        }
     }
 }

@@ -1,7 +1,5 @@
 package com.portal.service;
 
-import com.portal.dto.YandexResponse;
-import com.portal.entity.Chapter;
 import com.portal.entity.General;
 import com.portal.entity.GeneralSection;
 import com.portal.entity.Section;
@@ -15,12 +13,12 @@ import java.util.List;
 public class GeneralService {
 
     private final GeneralRepository generalRepository;
-    private final YandexDiskService yandexDiskService;
+    private final LocalFileService localFileService;
     private final GeneralSectionRepository generalSectionRepository;
 
-    public GeneralService(GeneralRepository generalRepository, YandexDiskService yandexDiskService, GeneralSectionRepository generalSectionRepository) {
+    public GeneralService(GeneralRepository generalRepository, LocalFileService localFileService, GeneralSectionRepository generalSectionRepository) {
         this.generalRepository = generalRepository;
-        this.yandexDiskService = yandexDiskService;
+        this.localFileService = localFileService;
         this.generalSectionRepository = generalSectionRepository;
     }
 
@@ -29,13 +27,20 @@ public class GeneralService {
     }
 
     public General createGeneral(General general) {
-        YandexResponse yandexResponse = yandexDiskService.createFolderForGeneral(general);
-        if (yandexResponse.getError() != null) {
-            return null;
-        }else{
+        try {
+            // Сначала сохраняем general чтобы получить ID
             generalRepository.save(general);
+
+            // Создаем папку в локальном хранилище
+            localFileService.createTemplateFolder(general.getId());
+
             general.setSrc("/" + general.getId());
-            return general;
+            return generalRepository.save(general);
+
+        } catch (Exception e) {
+            // Если не удалось создать папку, удаляем general
+            generalRepository.delete(general);
+            throw new RuntimeException("Не удалось создать файловую структуру шаблона: " + e.getMessage());
         }
     }
 

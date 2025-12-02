@@ -23,20 +23,19 @@ import java.util.stream.Collectors;
 public class ProjectChapterController {
 
     private final ProjectService projectService;
-    private final YandexDiskService yandexDiskService;
+    private final LocalFileService localFileService;
     private final SectionRepository sectionRepository;
     private final ChapterService chapterService;
     private final UserService userService;
     private final SectionAssignmentService sectionAssignmentService;
 
     public ProjectChapterController(ProjectService projectService,
-                                    YandexDiskService yandexDiskService,
-                                    SectionRepository sectionRepository,
+                                    LocalFileService localFileService, SectionRepository sectionRepository,
                                     ChapterService chapterService,
                                     UserService userService,
                                     SectionAssignmentService sectionAssignmentService) {
         this.projectService = projectService;
-        this.yandexDiskService = yandexDiskService;
+        this.localFileService = localFileService;
         this.sectionRepository = sectionRepository;
         this.chapterService = chapterService;
         this.userService = userService;
@@ -89,13 +88,13 @@ public class ProjectChapterController {
             return "404";
         }
     }
-
     @PostMapping("/sections/{sectionId}/generate")
     public String generateSection(@PathVariable Long projectId,
                                   @PathVariable Long sectionId) {
         Project project = projectService.findById(projectId).orElseThrow();
         Section section = sectionRepository.findById(sectionId).orElseThrow();
         try {
+            // Этот метод теперь использует LocalFileService внутри ProjectService
             Boolean result = projectService.markSectionAsGenerated(project, section);
             if(!result){
                 return "redirect:/projects/" + projectId + "/documents?error=Generation+failed";

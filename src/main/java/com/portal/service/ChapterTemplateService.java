@@ -17,13 +17,10 @@ public class ChapterTemplateService {
     private final ChapterRepository chapterRepository;
     private final GeneralRepository generalRepository;
     private final SectionRepository sectionRepository;
-    private final YandexDiskService yandexDiskService;
-
-    public ChapterTemplateService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository, YandexDiskService yandexDiskService) {
+    public ChapterTemplateService(ChapterRepository chapterRepository, GeneralRepository generalRepository, SectionRepository sectionRepository) {
         this.chapterRepository = chapterRepository;
         this.generalRepository = generalRepository;
         this.sectionRepository = sectionRepository;
-        this.yandexDiskService = yandexDiskService;
     }
 
     public Chapter createChapter(Chapter chapter, Long generalId) {

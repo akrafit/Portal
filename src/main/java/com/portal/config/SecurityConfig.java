@@ -25,7 +25,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Отключаем CSRF защиту
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/", "/login", "/error", "/webjars/**", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // Используем hasRole вместо hasAuthority
+                        .requestMatchers("/api/files/**").permitAll()
+                        .requestMatchers("/onlyoffice/config/**", "/onlyoffice/callback/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -43,4 +45,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }

@@ -38,4 +38,6 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     Long countChapterByProject(Project project);
 
     Optional<Chapter> findByProjectAndName(Project project, String name);
+
+    Chapter findChapterById(Long id);
 }

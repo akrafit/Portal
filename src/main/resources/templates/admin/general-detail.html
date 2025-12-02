@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title th:text="${general.name} + ' - Детали'"></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .upload-form {
             max-width: 500px;
@@ -11,6 +12,7 @@
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
+            background: #f8f9fa;
         }
         .form-group {
             margin-bottom: 15px;
@@ -92,9 +94,9 @@
             margin-top: 10px;
         }
 
-        /* Стили для шаблонов разделов */
+        /* Стили для таблицы */
         .template-section {
-            min-height: 80px;
+            min-height: 60px;
         }
 
         .drag-drop-text {
@@ -104,6 +106,7 @@
             border-radius: 8px;
             margin-bottom: 15px;
             color: #666;
+            background: white;
         }
         .file-input-wrapper {
             position: relative;
@@ -127,6 +130,10 @@
             border-radius: 4px;
             text-align: center;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .file-input-label:hover {
+            background: #e9ecef;
         }
         .file-info {
             display: none;
@@ -135,18 +142,32 @@
             background: #e9ecef;
             border-radius: 4px;
         }
+
+        .table th {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .section-checkbox {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
 <div class="container mt-4">
     <!-- Информация о General -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h2 th:text="${general.name}"></h2>
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0" th:text="${general.name}"></h2>
         </div>
         <div class="card-body">
+            <p><strong>ID:</strong> <span th:text="${general.id}"></span></p>
             <p><strong>Путь:</strong> <span th:text="${general.src}"></span></p>
-            <a href="/admin/generals" class="btn btn-secondary">← Назад к списку</a>
+            <a th:href="@{/admin/generals}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад к списку
+            </a>
         </div>
     </div>
 
@@ -166,107 +187,67 @@
     </div>
 
     <!-- Форма загрузки файлов для глав -->
-    <div class="upload-form" id="uploadFormContainer">
-        <div class="drag-drop-text">
-            Перетащите файл сюда или выберите вручную для загрузки новой главы
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0"><i class="fas fa-upload"></i> Загрузка файлов глав</h5>
         </div>
-
-        <div class="form-group">
-            <div class="file-input-wrapper">
-                <input type="file" id="file" name="file" required>
-                <div class="file-input-label" id="fileInputLabel">
-                    📁 Выберите файл или перетащите его сюда
+        <div class="card-body">
+            <div class="upload-form" id="uploadFormContainer">
+                <div class="drag-drop-text">
+                    <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i><br>
+                    Перетащите файл сюда или выберите вручную для загрузки новой главы
                 </div>
-            </div>
-            <div class="file-info" id="fileInfo">
-                <strong>Выбран файл:</strong> <span id="fileName"></span>
-                <br>
-                <strong>Размер:</strong> <span id="fileSize"></span>
+
+                <div class="form-group">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="file" name="file" required accept=".doc,.docx,.pdf,.txt,.rtf,.xls,.xlsx">
+                        <div class="file-input-label" id="fileInputLabel">
+                            <i class="fas fa-folder-open"></i> Выберите файл или перетащите его сюда
+                        </div>
+                    </div>
+                    <div class="file-info" id="fileInfo">
+                        <strong>Выбран файл:</strong> <span id="fileName"></span>
+                        <br>
+                        <strong>Размер:</strong> <span id="fileSize"></span>
+                    </div>
+                </div>
+
+                <!-- Скрытое поле для generalId -->
+                <input type="hidden" id="generalId" name="generalId" th:value="${general.id}">
+
+                <!-- Прогресс-бар -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill">0%</div>
+                    </div>
+                    <div class="progress-text" id="progressText">Подготовка к загрузке...</div>
+                </div>
+
+                <!-- Кнопка отмены -->
+                <button type="button" id="cancelBtn" class="btn btn-warning" style="display: none; width: 100%; margin-top: 10px;">
+                    <i class="fas fa-times"></i> Отменить загрузку
+                </button>
             </div>
         </div>
-
-        <!-- Скрытое поле для generalId -->
-        <input type="hidden" id="generalId" name="generalId" th:value="${general.getId()}">
-
-        <!-- Прогресс-бар -->
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill">0%</div>
-            </div>
-            <div class="progress-text" id="progressText">Подготовка к загрузке...</div>
-        </div>
-
-        <!-- Кнопка отмены -->
-        <button type="button" id="cancelBtn" style="display: none; width: 100%; margin-top: 10px;">
-            Отменить загрузку
-        </button>
     </div>
 
     <!-- Таблица связей Глав с Разделами -->
     <div class="card">
-        <div class="card-header">
-            <h4>Привязка Глав к Разделам</h4>
-            <p class="mb-0 text-muted">Отметьте чекбоксы и нажмите "Сохранить привязки"</p>
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="fas fa-link"></i> Привязка Глав к Разделам</h4>
+            <p class="mb-0 mt-1">Отметьте чекбоксы и нажмите "Сохранить привязки"</p>
         </div>
         <div class="card-body">
-            <!-- Формы для шаблонов разделов (ВНЕ формы чекбоксов) -->
-            <div style="display: none;">
-                <form th:each="section : ${sections}"
-                      th:if="${section.templateChapter != null && (generalSectionMap == null || !generalSectionMap.containsKey(section.id))}"
-                      th:action="@{/admin/generals/{generalId}/sections/{sectionId}/copy-template(generalId=${general.id}, sectionId=${section.id})}"
-                      method="post"
-                      th:id="'copy-template-form-' + ${section.id}">
-                </form>
-                <form th:each="section : ${sections}"
-                      th:if="${generalSectionMap != null && generalSectionMap.containsKey(section.id)}"
-                      th:action="@{/admin/generals/{generalId}/sections/{sectionId}/template/delete(generalId=${general.id}, sectionId=${section.id})}"
-                      method="post"
-                      th:id="'delete-template-form-' + ${section.id}">
-                </form>
-            </div>
-
-            <!-- Основная форма для чекбоксов -->
             <form id="sectionsForm" th:action="@{/admin/generals/{id}/save-sections(id=${general.id})}" method="post">
                 <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
                         <tr>
-                            <th>Глава</th>
-                            <th th:each="section : ${sections}">
+                            <th width="30%">Глава</th>
+                            <th th:each="section : ${sections}" width="*">
                                 <div class="d-flex flex-column align-items-center template-section">
-                                    <span th:text="${section.name}" class="mb-2 fw-bold"></span>
-
-                                    <!-- Блок управления шаблоном (теперь только кнопки, формы скрыты выше) -->
-                                    <div class="d-flex gap-1 align-items-center">
-                                        <!-- Кнопка копирования шаблона -->
-                                        <button th:if="${section.templateChapter != null && (generalSectionMap == null || !generalSectionMap.containsKey(section.id))}"
-                                                type="button"
-                                                class="btn btn-sm btn-success copy-template-btn"
-                                                th:data-section-id="${section.id}"
-                                                title="Добавить шаблон раздела">
-                                            +
-                                        </button>
-
-                                        <!-- Если шаблон уже скопирован в generalSectionMap -->
-                                        <div th:if="${generalSectionMap != null && generalSectionMap.containsKey(section.id)}">
-                                            <a th:href="${generalSectionMap[section.id].publicUrl}"
-                                               target="_blank"
-                                               class="btn btn-sm btn-outline-success me-1" title="Скачать шаблон">
-                                                📥
-                                            </a>
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-danger delete-template-btn"
-                                                    th:data-section-id="${section.id}"
-                                                    title="Удалить шаблон">
-                                                ×
-                                            </button>
-                                        </div>
-
-                                        <!-- Сообщение если нет исходного шаблона -->
-                                        <span th:if="${section.templateChapter == null}" class="text-muted small">
-                                            Нет шаблона
-                                        </span>
-                                    </div>
+                                    <span th:text="${section.name}" class="fw-bold text-center"></span>
+                                    <small class="text-muted mt-1" th:if="${section.description}" th:text="${section.description}"></small>
                                 </div>
                             </th>
                         </tr>
@@ -274,9 +255,20 @@
                         <tbody>
                         <tr th:each="chapter : ${chapters}">
                             <td>
-                                <a th:href="@{${chapter.getPublicUrl()}}" target="_blank">
-                                    <strong th:text="${chapter.name}"></strong>
-                                </a>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file me-2 text-primary"></i>
+                                    <div>
+                                        <strong th:text="${chapter.name}"></strong>
+                                        <div th:if="${chapter.publicUrl}" class="mt-1">
+                                            <a th:href="@{/api/files/download/{chapterId}(chapterId=${chapter.id})}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               target="_blank"
+                                               title="Скачать файл">
+                                                <i class="fas fa-download"></i> Скачать
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                             <td th:each="section : ${sections}">
                                 <div class="form-check d-flex justify-content-center">
@@ -293,23 +285,256 @@
                 </div>
 
                 <!-- Кнопка сохранения изменений -->
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-primary">Сохранить привязки</button>
+                <div class="mt-3 text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Сохранить привязки
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Сообщения об успехе/ошибке -->
-    <div th:if="${param.success}" class="alert alert-success mt-3">
-        Операция выполнена успешно!
+    <div th:if="${param.success}" class="alert alert-success mt-3 alert-dismissible fade show">
+        <i class="fas fa-check-circle"></i> Операция выполнена успешно!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div th:if="${param.error}" class="alert alert-danger mt-3">
-        Ошибка: <span th:text="${param.error}"></span>
+    <div th:if="${param.error}" class="alert alert-danger mt-3 alert-dismissible fade show">
+        <i class="fas fa-exclamation-triangle"></i> Ошибка: <span th:text="${param.error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 </div>
 
-<script src="/js/upload.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // upload.js - для загрузки файлов глав в локальное хранилище
+    let currentXHR = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file');
+        const fileInputLabel = document.getElementById('fileInputLabel');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadFormContainer = document.getElementById('uploadFormContainer');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        // 1. Автозагрузка при выборе файла
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                displayFileInfo(file);
+                setTimeout(() => {
+                    startUpload(file);
+                }, 500);
+            }
+        });
+
+        // 2. Drag & Drop функционал
+        uploadFormContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadFormContainer.classList.add('drag-over');
+        });
+
+        uploadFormContainer.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!uploadFormContainer.contains(e.relatedTarget)) {
+                uploadFormContainer.classList.remove('drag-over');
+            }
+        });
+
+        uploadFormContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadFormContainer.classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                fileInput.files = files;
+                displayFileInfo(file);
+                setTimeout(() => {
+                    startUpload(file);
+                }, 500);
+            }
+        });
+
+        // 3. Отображение информации о файле
+        function displayFileInfo(file) {
+            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+            fileName.textContent = file.name;
+            fileSize.textContent = `${sizeInMB} MB`;
+            fileInfo.style.display = 'block';
+            fileInputLabel.textContent = `📁 ${file.name}`;
+            fileInputLabel.style.background = '#d4edda';
+            fileInputLabel.style.borderColor = '#c3e6cb';
+        }
+
+        // 4. Кнопка отмены
+        cancelBtn.addEventListener('click', function() {
+            if (currentXHR) {
+                currentXHR.abort();
+                resetForm();
+                showMessage('Загрузка отменена', 'info');
+            }
+        });
+    });
+
+    // Функция начала загрузки
+    function startUpload(file) {
+        const generalId = document.getElementById('generalId').value;
+        const progressContainer = document.getElementById('progressContainer');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        if (!generalId) {
+            alert('Ошибка: General ID не указан');
+            return;
+        }
+
+        // Показываем прогресс-бар и кнопку отмены
+        progressContainer.style.display = 'block';
+        cancelBtn.style.display = 'block';
+
+        try {
+            updateProgress(10, 'Подготовка файла...');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('generalId', generalId);
+
+            currentXHR = new XMLHttpRequest();
+
+            // Отслеживаем прогресс загрузки
+            currentXHR.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    updateProgress(10 + percentComplete * 0.6, `Загрузка на сервер: ${Math.round(percentComplete)}%`);
+                }
+            });
+
+            // Обрабатываем ответ
+            currentXHR.addEventListener('load', function() {
+                try {
+                    const result = JSON.parse(currentXHR.responseText);
+
+                    // Проверяем наличие ошибки в ответе независимо от статуса
+                    if (result.error) {
+                        handleError(result.error);
+                        return;
+                    }
+
+                    // Если статус 200 и нет ошибки - успех
+                    if (currentXHR.status === 200) {
+                        updateProgress(100, 'Загрузка завершена!');
+                        showSuccessNotification();
+                        currentXHR = null;
+                        cancelBtn.style.display = 'none';
+                    } else {
+                        // Другие успешные статусы (например, 201 Created)
+                        updateProgress(100, 'Загрузка завершена!');
+                        showSuccessNotification();
+                        currentXHR = null;
+                        cancelBtn.style.display = 'none';
+                    }
+
+                } catch (parseError) {
+                    // Если не удалось распарсить JSON, показываем общую ошибку
+                    if (currentXHR.status === 200) {
+                        handleError('Ошибка обработки ответа сервера');
+                    } else {
+                        handleError(`Ошибка сервера: ${currentXHR.status} - ${currentXHR.statusText}`);
+                    }
+                }
+            });
+
+            // Обрабатываем ошибки
+            currentXHR.addEventListener('error', function() {
+                handleError('Ошибка сети');
+            });
+
+            currentXHR.addEventListener('timeout', function() {
+                handleError('Таймаут запроса');
+            });
+
+            currentXHR.addEventListener('abort', function() {
+                updateProgress(0, 'Загрузка отменена');
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 2000);
+            });
+
+            // ОТПРАВЛЯЕМ В НОВЫЙ КОНТРОЛЛЕР
+            currentXHR.open('POST', '/api/files/upload/template');
+            currentXHR.timeout = 60000; // 60 секунд таймаут
+            currentXHR.send(formData);
+
+        } catch (error) {
+            handleError(`Ошибка: ${error.message}`);
+        }
+    }
+
+    // Функция сброса формы
+    function resetForm() {
+        const fileInput = document.getElementById('file');
+        const fileInputLabel = document.getElementById('fileInputLabel');
+        const fileInfo = document.getElementById('fileInfo');
+        const progressContainer = document.getElementById('progressContainer');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        fileInput.value = '';
+        fileInputLabel.textContent = '📁 Выберите файл или перетащите его сюда';
+        fileInputLabel.style.background = '#f8f9fa';
+        fileInputLabel.style.borderColor = '#dee2e6';
+        fileInfo.style.display = 'none';
+        progressContainer.style.display = 'none';
+        cancelBtn.style.display = 'none';
+        currentXHR = null;
+    }
+
+    function updateProgress(percent, text) {
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+
+        progressFill.style.width = percent + '%';
+        progressFill.textContent = Math.round(percent) + '%';
+        progressText.textContent = text;
+
+        if (percent < 30) {
+            progressFill.style.background = 'linear-gradient(90deg, #ff4444, #ff6b6b)';
+        } else if (percent < 70) {
+            progressFill.style.background = 'linear-gradient(90deg, #ffa726, #ffb74d)';
+        } else {
+            progressFill.style.background = 'linear-gradient(90deg, #4CAF50, #45a049)';
+        }
+    }
+
+    function showSuccessNotification() {
+        alert('Файл успешно загружен! Страница перезагрузится через 3 секунды...');
+        setTimeout(() => {
+            location.reload();
+        }, 3000);
+    }
+
+    function handleError(message) {
+        const progressText = document.getElementById('progressText');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        progressText.textContent = 'Ошибка!';
+        progressText.style.color = 'red';
+        cancelBtn.style.display = 'none';
+
+        setTimeout(() => {
+            resetForm();
+        }, 3000);
+
+        alert(message);
+    }
+
+    function showMessage(message, type) {
+        console.log(`${type}: ${message}`);
+    }
+</script>
 </body>
 </html>

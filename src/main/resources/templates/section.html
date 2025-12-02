@@ -624,8 +624,15 @@
                     </td>
                     <td th:text="${documentDto.getCreated()}">20.12.2023 14:30</td>
                     <td>
-                        <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"
-                           target="_blank" class="file-link" ><p>Открыть</p></a>
+                    <td>
+                        <a th:href="@{/project/{projectId}/{sectionId}/document/{chapterId}(
+                    projectId=${project.id},
+                    sectionId=${section.id},
+                    chapterId=${documentDto.getId()})}"
+                           class="file-link">
+                            <p>Открыть в редакторе</p>
+                        </a>
+                    </td>
                     </td>
                 </tr>
 

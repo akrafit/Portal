@@ -86,4 +86,5 @@ public class Chapter {
     public String getPublicUrl() {
         return publicUrl;
     }
+
 }

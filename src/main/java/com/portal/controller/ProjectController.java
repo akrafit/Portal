@@ -1,7 +1,6 @@
 package com.portal.controller;
 
 import com.portal.dto.ProjectForm;
-import com.portal.dto.YandexResponse;
 import com.portal.entity.Project;
 import com.portal.entity.User;
 import com.portal.enums.UserRole;
@@ -57,14 +56,18 @@ public class ProjectController {
     public String createProject(@ModelAttribute ProjectForm projectForm,
                                 Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
-        Project project = new Project();
-        project.setName(projectForm.getName());
-        project.setDescription(projectForm.getDescription());
-        YandexResponse response = projectService.createProject(project, authentication,projectForm.getGeneralId());
-        if(response.getHref() != null){
+        try {
+            Project project = new Project();
+            project.setName(projectForm.getName());
+            project.setDescription(projectForm.getDescription());
+
+            // Используем новый метод без YandexResponse
+            projectService.createProjectLocal(project, authentication, projectForm.getGeneralId());
+
             redirectAttributes.addFlashAttribute("successMessage", "Проект успешно создан!");
-        }else{
-            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при создании проекта: " + response.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Ошибка при создании проекта: " + e.getMessage());
         }
         return "redirect:/projects";
     }
