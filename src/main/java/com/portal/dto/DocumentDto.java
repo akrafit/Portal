@@ -28,7 +28,7 @@ public class DocumentDto {
         this.id = chapter.getId();
         this.path = chapter.getPath();
         this.name = removeFileExtension(chapter.getName());
-        this.created = DateUtils.formatDateTime(chapter.getCreated());
+        this.created = chapter.getCreated();
         this.modified = chapter.getModified();
         this.size = chapter.getSize();
         this.dot = getFileExtension(chapter.getName());

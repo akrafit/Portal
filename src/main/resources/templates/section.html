@@ -611,8 +611,11 @@
                 <!-- Excel файлы -->
                 <tr th:each="documentDto: ${documentDtoList}">
                     <td>
-                        <a th:href="@{${documentDto.getPublicUrl()}}" href="https://disk.yandex.ru/"
-                           target="_blank" class="file-link" ><p th:text="${documentDto.getName()}"></p>
+                        <a th:href="@{/project/{projectId}/{sectionId}/document/{chapterId}(
+                                projectId=${project.id},
+                                sectionId=${section.id},
+                                chapterId=${documentDto.getId()})}"
+                           target="_blank" class="file-link"><p th:text="${documentDto.getName()}"></p>
                         </a>
                     </td>
                     <td>
@@ -622,17 +625,9 @@
                             <option value="cancelled">Отменен</option>
                         </select>
                     </td>
-                    <td th:text="${documentDto.getCreated()}">20.12.2023 14:30</td>
+                    <td th:text="${documentDto.getModified()}">20.12.2023 14:30</td>
                     <td>
-                    <td>
-                        <a th:href="@{/project/{projectId}/{sectionId}/document/{chapterId}(
-                    projectId=${project.id},
-                    sectionId=${section.id},
-                    chapterId=${documentDto.getId()})}"
-                           class="file-link">
-                            <p>Открыть в редакторе</p>
-                        </a>
-                    </td>
+
                     </td>
                 </tr>
 

@@ -2,6 +2,7 @@ package com.portal.controller;
 
 import com.portal.dto.FileItem;
 import com.portal.entity.*;
+import com.portal.enums.Type;
 import com.portal.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

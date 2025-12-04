@@ -1,10 +1,10 @@
 package com.portal.controller.admin;
 
 import com.portal.entity.Chapter;
-import com.portal.entity.Section;
 import com.portal.service.ChapterService;
 import com.portal.service.GeneralService;
 import com.portal.service.SectionService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +19,10 @@ public class DocumentController {
     private final SectionService sectionService;
     private final ChapterService chapterService;
 
+
+    @Value("${onlyoffice.document-server.api-url}")
+    private String apiUrl;
+
     public DocumentController(GeneralService generalService, SectionService sectionService, ChapterService chapterService) {
         this.generalService = generalService;
         this.sectionService = sectionService;
@@ -31,6 +35,7 @@ public class DocumentController {
                                Model model) {
         Chapter chapter = chapterService.findById(chapterId);
         model.addAttribute("chapter", chapter);
+        model.addAttribute("api", apiUrl);
         return "document"; // Thymeleaf-шаблон document.html
     }
 }

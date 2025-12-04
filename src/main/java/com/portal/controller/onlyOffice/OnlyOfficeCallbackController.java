@@ -8,17 +8,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/onlyoffice/callback")
 public class OnlyOfficeCallbackController {
     private final ChapterRepository chapterRepository;
+    String europeanDatePattern = "dd.MM.yyyy HH:mm:ss";
+    DateTimeFormatter europeanDateFormatter = DateTimeFormatter.ofPattern(europeanDatePattern);
 
     public OnlyOfficeCallbackController(ChapterRepository chapterRepository) {
         this.chapterRepository = chapterRepository;
@@ -62,7 +65,9 @@ public class OnlyOfficeCallbackController {
                     Files.createDirectories(targetPath.getParent());
                     try (InputStream in = resource.getInputStream()) {
                         Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                        chapter.setModified(europeanDateFormatter.format(LocalDateTime.now()));
                     }
+                    chapterRepository.save(chapter);
                     System.out.println("Документ " + id + " сохранён в " + targetPath);
                 } catch (Exception e) {
                     e.printStackTrace();

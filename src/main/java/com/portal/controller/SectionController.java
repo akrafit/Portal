@@ -7,6 +7,7 @@ import com.portal.entity.Project;
 import com.portal.entity.Section;
 import com.portal.repo.SectionRepository;
 import com.portal.service.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,8 @@ public class SectionController {
     private final ProjectService projectService;
     private final SectionService sectionService;
     private final ChapterService chapterService;
+    @Value("${onlyoffice.document-server.api-url}")
+    private String apiUrl;
 
     public SectionController(ProjectService projectService, SectionService sectionService, ChapterService chapterService) {
         this.projectService = projectService;
@@ -56,6 +59,7 @@ public class SectionController {
         model.addAttribute("project", project);
         model.addAttribute("section", section);
         model.addAttribute("chapter", chapter);
+        model.addAttribute("api", apiUrl);
 
         return "document"; // Thymeleaf-шаблон document.html
     }

@@ -3,6 +3,7 @@ package com.portal.service;
 import com.portal.dto.FileItem;
 import com.portal.dto.YandexDiskItem;
 import com.portal.entity.*;
+import com.portal.enums.Type;
 import com.portal.repo.ChapterRepository;
 import com.portal.repo.GeneralRepository;
 import com.portal.repo.SectionRepository;

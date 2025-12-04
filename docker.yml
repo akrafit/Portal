@@ -14,12 +14,12 @@ services:
       - SPRING_DATASOURCE_PASSWORD=69gidadi
       - FILE_STORAGE_PATH=/app/file-storage
       - APP_YANDEX_KEY=y0__xCOxOOAAhjblgMgqZ7f_hTBVYkncrd66FLS0scdlgPl_MOsgw
-      - CLIENT_ID=38539a122f68432dae58b4937e855b10
-      - CLIENT_SECRET=4537b2de489541dea0fd6633b6a3b166
+      - CLIENT_ID=31d7d28d65964d05bd6a198f96a30552
+      - CLIENT_SECRET=f31972f9448d4422b79140de954e7869
       # URL для интеграции с OnlyOffice внутри сети
       - ONLYOFFICE_URL=http://onlyoffice:80
       - ONLYOFFICE_JWT_SECRET=supersecret
-      - APP_SERVER_URL=http://ink-aae:8082/web-apps/apps/api/documents/api.js
+      - APP_SERVER_URL=http://localhost:8083/web-apps/apps/api/documents/api.js
     volumes:
       - ./file-storage:/app/file-storage
       - ./logs:/app/logs
